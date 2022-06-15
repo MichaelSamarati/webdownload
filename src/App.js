@@ -27,7 +27,7 @@ function App() {
   const handleSubmit = (e) => {
     e.preventDefault()
     console.log(inputs)
-    downloadWebpage()
+    downloadWebpage(inputs.name, inputs.link)
   }
   return (
       <Container>
@@ -56,11 +56,11 @@ function App() {
               </Form.Group>
               <Form.Group controlId="username" className="mb-2">
                 <Form.Label>Username</Form.Label>
-                <Form.Control size="sm" onChange={updateUsername} placeholder="" type="text" disabled={inputs.login}></Form.Control>
+                <Form.Control size="sm" onChange={updateUsername} placeholder="" type="text" disabled={!inputs.login}></Form.Control>
               </Form.Group>
               <Form.Group controlId="password" className="mb-2">
                 <Form.Label>Password</Form.Label>
-                <Form.Control size="sm" onChange={updatePassword} placeholder="" type="text" disabled={inputs.login}></Form.Control>
+                <Form.Control size="sm" onChange={updatePassword} placeholder="" type="text" disabled={!inputs.login}></Form.Control>
               </Form.Group>
             </Form>
             <Button className="mt-2" type="submit" onClick={handleSubmit}>Download Webpage</Button>
