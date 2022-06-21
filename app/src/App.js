@@ -26,7 +26,7 @@ function App() {
   }
   const handleSubmit = (e) => {
     e.preventDefault()
-    console.log(inputs)
+    //console.log(inputs)
     downloadWebpage(inputs.name, inputs.link)
   }
   return (

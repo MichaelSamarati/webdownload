@@ -4,7 +4,8 @@ import getUrls from 'get-urls';
 import axios from 'axios';
 import download from 'downloadjs';
 import io from 'socket.io-client';
-
+//import ss from 'socket.io-stream';
+//import fs from 'fs';
 
 const socket = io("http://localhost:3080");
 
@@ -13,16 +14,27 @@ socket.on('connect', () => {
     socket.emit("webdownload", "Test123");
 })
 
-socket.on("zip", function(msg){
-    var bufView = new Uint8Array(msg);
-    console.log("new Blob(msg), {type: application/zip}");
-    saveAs(new Blob(msg), {type: "application/zip"});
+socket.on("zip", function(buffer){
+    console.log(buffer);
+    console.log("new Blob(buffer), {type: application/zip}");
+    const blob = new Blob([buffer], {type: "application/zip"});
+    saveAs(blob, "new.zip");
+    
  } )
+//  ss(socket).on('zip', function(stream) {
+//     stream.pipe(fs.createWriteStream(filename)); 
+//     stream.on('end', function (file) {
+//       console.log('file received');
+//       saveAs(file, "new.zip");
+//     });
+//   });
 
 export default async function downloadWebpage(name, link, iterations){
     console.log("Download started!")
     try{
         socket.emit("webdownload", link);
+
+        
         // console.log("awdwad")
         // console.log(link)
         // const response = await axios.get("http://localhost:3080/webdownload", { 

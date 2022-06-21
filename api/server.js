@@ -15,7 +15,8 @@ import JSZip from 'jszip';
 import fs from 'fs';
 import extractUrls from 'extract-urls';
 import { Server } from 'socket.io';
-
+//import ss from 'socket.io-stream'
+//import { Stream } from 'stream';
 
 const io = new Server({
     cors: {
@@ -26,16 +27,30 @@ const io = new Server({
   io.on("connection", socket => {
     console.log("Connected with socket id: "+socket.id);
 
+    // socket.on('webdownload', function () {
+    //   var stream = ss.createStream();
+    //   stream.on('end', function () {
+    //       console.log('file sent');
+    //   });
+    //   ss(socket).emit('zip', stream); 
+    //   fs.createReadStream("tile.zip").pipe(stream);
+    // });  
+
     socket.on("webdownload",  (arg) => {
         console.log("link"+arg);
 
         const zip = new JSZip();
         zip.file("test.txt", "Just to see if zip works");
-        zip.generateAsync({ type: "nodebuffer" });
-        // fs.writeFile('test1.zip', zip.generate({ type: "nodebuffer" }), 'binary', function (error) {
+        zip.generateAsync({ type: "base64", compression: 'DEFLATE' });
+        //fs.writeFile('test10.zip', zip.generate({ type: "nodebuffer" }), 'binary', function (error) {});
         //     console.log('wrote test1.zip', error);
         // });
         //var bufArr = new ArrayBuffer(zip);
+        //socket.binaryType = 'arraybuffer';
+        //console.log(f.length+ "length send")
+        //stream.pipe(fs.createWriteStream('test10.zip'));
+        //socket.emit("zip", {'file':zip.toString('base64')});
+        //socket.emit("zip", fs.createReadStream('file.jpg'))
         socket.emit("zip", {'file':zip.toString('base64')});
         //socket.emit(fs.createReadStream(zip.generate({ type: "nodebuffer" })));
 
