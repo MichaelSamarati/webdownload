@@ -32,7 +32,7 @@ const io = new Server({
         zip.generateAsync({ type: "nodebuffer" });
 
         socket.emit("zip", "Path", "Test")
-        console.log(fs.readFileSync("towplane.jpg").toString('base64').length+ " dwa da dw")
+        
 
         fs.readFile('ms.png', function(err, data){
           socket.emit('png', "data:image/png;base64,"+ data.toString("base64"));
@@ -44,12 +44,14 @@ const io = new Server({
     });
   });
 
-  
+
   io.listen(3080);
 
   
 //https://gist.github.com/companje/b95e735650f1cd2e2a41
 /*
+
+console.log(fs.readFileSync("towplane.jpg").toString('base64').length+ " dwa da dw")
         //fs.writeFile('test10.zip', zip.generate({ type: "base64" }), 'binary', function (error) {});
         //     console.log('wrote test1.zip', error);
         // });
