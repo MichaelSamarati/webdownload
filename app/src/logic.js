@@ -1,5 +1,6 @@
 import { saveAs } from "file-saver";
 import getUrls from 'get-urls';
+import JSZip from 'jszip'; 
 //import puppeteer from "puppeteer"
 import axios from 'axios';
 import download from 'downloadjs';
@@ -63,35 +64,75 @@ export default async function downloadWebpage(name, link, iterations) {
     try {
         const socket = io("http://localhost:3080");
 
+
+
+
         socket.on('connect', () => {
             console.log(socket.id);
             socket.emit("webdownload", "Test123");
         })
-
-        socket.on("text", async function (path, msg) {
+        socket.on("text", async function (folder, fileName, msg) {
             const blob = new Blob([msg], { type: "text/plain" });
-            console.log(blob.size + "  text")
-            saveAs(blob, "new.txt");
+            zip.folder(folder).file(fileName + ".html", msg);
+            //saveAs(blob, "new.txt");
 
         })
-        socket.on("jpg", async function (msg) {
+        socket.on("jpg", async function (folder, fileName, msg) {
             const blob = new Blob([msg]);
-            console.log(blob.size + "  jpg")
+            zip.folder(folder).file(fileName + ".jpg", msg, {binary: true});
+            //oder zip.folder(folder).file(fileName + ".jpg", blob);
             saveAs(msg, "towplane.jpg");
 
         })
-        socket.on("png", async function (msg) {
+        socket.on("png", async function (folder, fileName, msg) {
             const blob = new Blob([msg]);
-            console.log(blob.size + "  png")
+            zip.folder(folder).file(fileName + ".png", msg, {binary: true});
+            //oder zip.folder(folder).file(fileName + ".png", blob);
             saveAs(msg, "ms.png");
-
         })
 
-        socket.emit("webdownload", link);
+        socket.on("end", async function (msg) {
+            //Generate zip file
+            const content = await zip.generateAsync({ type: "blob" });
+            //Download zip in browser
+            saveAs(content, name+".zip");
+            //Save end time and print time difference
+            const end = await Date.now();
+            await console.log("Process finished!")
+            await console.log("Process took "+((end-start)/1000)+" seconds");
+        })
+        // socket.on("text", async function (folder, filename, msg) {
+        //     const blob = new Blob([msg], { type: "text/plain" });
+        //     console.log(blob.size + "  text")
+        //     saveAs(blob, "new.txt");
 
-        console.log("Download finished!")
+        // })
+        // socket.on("jpg", async function (folder, filename, msg) {
+        //     const blob = new Blob([msg]);
+        //     console.log(blob.size + "  jpg")
+        //     saveAs(msg, "towplane.jpg");
+
+        // })
+        // socket.on("png", async function (folder, filename, msg) {
+        //     const blob = new Blob([msg]);
+        //     console.log(blob.size + "  png")
+        //     saveAs(msg, "ms.png");
+
+        // })
+        socket.on("error", async function (error) {
+            console.log(error)
+        })
+        //Save start time
+        const start = Date.now();
+        //Initiate website download
+        socket.emit("webdownload", link, iterations);
+        //Initilize zip file
+        const zip = new JSZip();
+        //Test
+        zip.file("test.txt", "Just to see if zip works");
+        
     } catch (e) {
         console.log(e)
-        console.log("Download failed!")
+        console.log("Process failed!")
     }
 }

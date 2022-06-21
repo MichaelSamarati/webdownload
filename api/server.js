@@ -8,10 +8,10 @@
         //do permanently updates so probably websocket with client ;; 
 
 
-import getUrls from 'get-urls';
+//import getUrls from 'get-urls';
 import axios from 'axios';
 import cors from 'cors';
-import JSZip from 'jszip';
+//import JSZip from 'jszip';
 import fs from 'fs';
 import extractUrls from 'extract-urls';
 import { Server } from 'socket.io';
@@ -21,33 +21,194 @@ const io = new Server({
         origin: ["http://localhost:3000"]
     }
   });
-  
+  io.listen(3080);
+
   io.on("connection", socket => {
     console.log("Connected with socket id: "+socket.id); 
-    socket.on("webdownload", async (arg) => {
-        console.log("link"+arg);
+    socket.on("webdownload", async (link, iterations) => {
+      console.log("webdownload intitiated...")
+      console.log(link+"    "+iterations);
+      try {
+        //Save start time
+        const start = Date.now();
 
-        const zip = new JSZip();
-        zip.file("test.txt", "Just to see if zip works");
-        zip.generateAsync({ type: "nodebuffer" });
+        //Set to uniquely save the visited urls 
+        const urlVisitedSet = new Set();
+        //Array to hold current urls of level
+        var urls = new Array();
+        //Add starting url to array
+        urls.push(link);
+        //Set to save urls extracted from current level
+        const extractedUrls = new Set();
 
-        socket.emit("zip", "Path", "Test")
+        //Goes iterations deep in new pages
+        while(iterations>0){
+            //Goes every url in this level of deepness through
+            for(let i = 0; i<urls.length; i++){
+                //Get Data from url
+                const pageHtml = await pageDownload(urls[i]);
+                if(typeof pageHtml !== 'string'){
+                    continue;
+                }
+                //Parse foldername and filename for file in zip
+                const urlWithoutHttps = await removeHttp(urls[i]);
+                await console.log("urlWithoutHttps="+urlWithoutHttps);
+                const fileName = await urlWithoutHttps.substring(urlWithoutHttps.lastIndexOf('/') + 1);
+                //await console.log("fileName="+fileName);
+                const folderName = await urlWithoutHttps.substring(urlWithoutHttps.lastIndexOf('/') + 1, '\0');
+                //await console.log("folderName="+folderName);
+                //Add file in correct folder of zip
+                //const folder = await zip.folder(folderName);
+                //await folder.file(fileName + ".html", pageHtml);
+                socket.emit("text", folderName, fileName, pageHtml)
+                //Mark url visited
+                await urlVisitedSet.add(urlWithoutHttps);
+                //Extract potential urls for next level 
+                const potentialUrls = await extractUrls(pageHtml);
+                
+                //Save urls which are not visited
+                if(typeof potentialUrls !== 'undefined'){
+                    for(let k = 0; k<potentialUrls.length; k++){
+                        if(!urlVisitedSet.has(potentialUrls[k])){
+                             extractedUrls.add(potentialUrls[k]);
+                        }
+                    }
+                }
+            }
+
+
+            //Save extracted urls to array and reset the set for next level
+            urls = await [...extractedUrls];
+            await extractedUrls.clear();
+            //Lower the level of deepness by one
+            await iterations--;
+            console.log(iterations);
+        }
+        await socket.emit("end", "adwadwad");
+        const end = await Date.now();
         
+        await console.log("Process finished!");
+        await console.log("Process took "+((end-start)/1000)+" seconds");
+    } catch (e) {
+        console.log(e);
+        console.log("Process failed!");
+        console.log("error", "An error occured on the server!")
+    }
 
-        fs.readFile('ms.png', function(err, data){
-          socket.emit('png', "data:image/png;base64,"+ data.toString("base64"));
-        });        
-        fs.readFile('towplane.jpg', function(err, data){
-          socket.emit('jpg', "data:image/jpg;base64,"+ data.toString("base64"));
-        });
+
+        //socket.emit("text", "Path", "Test")
+      
+        // fs.readFile('ms.png', function(err, data){
+        //   socket.emit('png', "data:image/png;base64,"+ data.toString("base64"));
+        // });        
+        // fs.readFile('towplane.jpg', function(err, data){
+        //   socket.emit('jpg', "data:image/jpg;base64,"+ data.toString("base64"));
+        // });
       
     });
   });
 
 
-  io.listen(3080);
+  function removeHttp(url) {
+    const withoutHttp = url.replace(/^https?:\/\//, '');
+    return withoutHttp;
+}
 
-  
+async function pageDownload(link) {
+    try {
+        const response = await axios.get(link);
+        if (response.status !== 200) {
+            console.log('Looks like there was a problem. Status Code: ' + response.status);
+        }
+        const pageHtml = await response.data;
+        return pageHtml;
+    } catch (e) {
+        console.log(e);
+        return "Error";
+    }
+  }
+
+/*
+  async function download(link, name, iterations) {
+        console.log("Process started!")
+        try {
+            //Save start time
+            const start = Date.now();
+
+            //Set to uniquely save the visited urls 
+            const urlVisitedSet = new Set();
+            //Array to hold current urls of level
+            var urls = new Array();
+            //Add starting url to array
+            urls.push(link);
+            //Set to save urls extracted from current level
+            const extractedUrls = new Set();
+    
+            //Test
+            zip.file("test.txt", "Just to see if zip works");
+    
+            //Goes iterations deep in new pages
+            while(iterations>0){
+                //Goes every url in this level of deepness through
+                for(let i = 0; i<urls.length; i++){
+                    //Get Data from url
+                    const pageHtml = await pageDownload(urls[i]);
+                    if(typeof pageHtml !== 'string'){
+                        //JSON.stringify(pageHtml);
+                        continue;
+                    }
+                    //Parse foldername and filename for file in zip
+                    const urlWithoutHttps = await removeHttp(urls[i]);
+                    await console.log("urlWithoutHttps="+urlWithoutHttps);
+                    const fileName = await urlWithoutHttps.substring(urlWithoutHttps.lastIndexOf('/') + 1);
+                    //await console.log("fileName="+fileName);
+                    const folderName = await urlWithoutHttps.substring(urlWithoutHttps.lastIndexOf('/') + 1, '\0');
+                    //await console.log("folderName="+folderName);
+                    //Add file in correct folder of zip
+                    const folder = await zip.folder(folderName);
+                    await folder.file(fileName + ".html", pageHtml);
+                    //Mark url visited
+                    await urlVisitedSet.add(fileName);
+                    //Extract potential urls for next level 
+                    const potentialUrls = await extractUrls(pageHtml);
+                    
+                    //Save urls which are not visited
+                    if(typeof potentialUrls !== 'undefined'){
+                        for(let k = 0; k<potentialUrls.length; k++){
+                            if(!urlVisitedSet.has(potentialUrls[k])){
+                                 extractedUrls.add(potentialUrls[k]);
+                            }
+                        }
+                    }
+                }
+    
+    
+                //Save extracted urls to array and reset the set for next level
+                urls = await [...extractedUrls];
+                await extractedUrls.clear();
+                //Lower the level of deepness by one
+                await iterations--;
+                console.log(iterations);
+            }
+            //Generate zip file
+            const content = await zip.generateAsync({ type: "nodebuffer" });
+    
+            const end = await Date.now();
+            
+            await console.log("Process finished!");
+            await console.log("Process took "+((end-start)/1000)+" seconds");
+            return content;
+        } catch (e) {
+            console.log(e);
+            console.log("Process failed!");
+            return "Error";
+        }
+    
+    }
+    
+
+*/
+
 //https://gist.github.com/companje/b95e735650f1cd2e2a41
 /*
 
