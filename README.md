@@ -10,16 +10,16 @@ WebDownload is an JavaScript app to download a website for offline usage.
 
 ## Dependencies
 
-- Website
- - react
- - react-bootstrap
- - socket.io-client
- - ...
+- Client
+  - react
+  - react-bootstrap
+  - socket.io-client
+  - ...
 
 - Server
- - socket.io
- - jszip
- - extract-urls
- - ...
+  - socket.io
+  - jszip
+  - extract-urls
+  - ...
 
 
