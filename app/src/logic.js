@@ -68,8 +68,10 @@ export default async function downloadWebpage(name, link, iterations) {
 
 
         socket.on('connect', () => {
-            console.log(socket.id);
-            socket.emit("webdownload", "Test123");
+            //console.log("Connected with server!");
+        })
+        socket.on('disconnect', () => {
+            //console.log("Disconnected!");
         })
         socket.on("text", async function (folder, fileName, msg) {
             const blob = new Blob([msg], { type: "text/plain" });
@@ -100,6 +102,7 @@ export default async function downloadWebpage(name, link, iterations) {
             const end = await Date.now();
             await console.log("Process finished!")
             await console.log("Process took "+((end-start)/1000)+" seconds");
+            socket.disconnect();
         })
         // socket.on("text", async function (folder, filename, msg) {
         //     const blob = new Blob([msg], { type: "text/plain" });
@@ -125,11 +128,11 @@ export default async function downloadWebpage(name, link, iterations) {
         //Save start time
         const start = Date.now();
         //Initiate website download
-        socket.emit("webdownload", link, iterations);
+        socket.emit("webdownload", {link: link, iterations: iterations});
         //Initilize zip file
         const zip = new JSZip();
-        //Test
-        zip.file("test.txt", "Just to see if zip works");
+        ////Test
+        //zip.file("test.txt", "Just to see if zip works");
         
     } catch (e) {
         console.log(e)

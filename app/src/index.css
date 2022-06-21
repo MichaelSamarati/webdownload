@@ -1,12 +1,19 @@
 * {
-  background-color: rgb(90, 148, 196);
+  /*background-color: rgb(90, 148, 196);*/
 }
 
 html, body {
   margin: 0 !important;
   padding: 0 !important;
+} 
+
+body {
+  height: 100vh;
+  background-image: linear-gradient(to top, #bfc9cf 0%, #e2ebf0 100%) !important;
 }
 
 .no-select {
   user-select:none;
 }
+
+

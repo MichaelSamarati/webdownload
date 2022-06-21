@@ -6,12 +6,10 @@
         //evtl file limit or so
         //comment everything at end
         //do permanently updates so probably websocket with client ;; 
+//statistics with iteration status and file count ;; 
 
-
-//import getUrls from 'get-urls';
 import axios from 'axios';
 import cors from 'cors';
-//import JSZip from 'jszip';
 import fs from 'fs';
 import extractUrls from 'extract-urls';
 import { Server } from 'socket.io';
@@ -23,9 +21,12 @@ const io = new Server({
   });
   io.listen(3080);
 
-  io.on("connection", socket => {
-    console.log("Connected with socket id: "+socket.id); 
-    socket.on("webdownload", async (link, iterations) => {
+  io.on("connection", socket => { 
+    socket.on("disconnect", function() {
+        console.log('Got disconnect!');
+      })
+      
+    socket.on("webdownload", async ({link, iterations}) => {
       console.log("webdownload intitiated...")
       console.log(link+"    "+iterations);
       try {
@@ -33,7 +34,7 @@ const io = new Server({
         const start = Date.now();
 
         //Set to uniquely save the visited urls 
-        const urlVisitedSet = new Set();
+        const visitedUrlSet = new Set();
         //Array to hold current urls of level
         var urls = new Array();
         //Add starting url to array
@@ -62,14 +63,14 @@ const io = new Server({
                 //await folder.file(fileName + ".html", pageHtml);
                 socket.emit("text", folderName, fileName, pageHtml)
                 //Mark url visited
-                await urlVisitedSet.add(urlWithoutHttps);
+                await visitedUrlSet.add(urlWithoutHttps);
                 //Extract potential urls for next level 
                 const potentialUrls = await extractUrls(pageHtml);
                 
                 //Save urls which are not visited
                 if(typeof potentialUrls !== 'undefined'){
                     for(let k = 0; k<potentialUrls.length; k++){
-                        if(!urlVisitedSet.has(potentialUrls[k])){
+                        if(!visitedUrlSet.has(potentialUrls[k])){
                              extractedUrls.add(potentialUrls[k]);
                         }
                     }
@@ -84,7 +85,7 @@ const io = new Server({
             await iterations--;
             console.log(iterations);
         }
-        await socket.emit("end", "adwadwad");
+        await socket.emit("end", "Every demanded files were send!");
         const end = await Date.now();
         
         await console.log("Process finished!");
