@@ -4,8 +4,7 @@ import { Container, Row, Col, Alert, Form, Button } from 'react-bootstrap'
 import downloadWebpage from './logic.js'
 
 function App() {
-  const [inputs, setInputs] = useState({name: "file", link: "https://www.example.com/", login: false});
-
+  const [inputs, setInputs] = useState({name: "file", link: "https://example.com", iterations: 3, login: false});
 
   const updateName = (e) => {
     setInputs(inputs => ({ ...inputs, name: e.target.value }));
