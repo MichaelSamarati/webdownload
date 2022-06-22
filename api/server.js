@@ -20,13 +20,12 @@ const io = new Server({
     }
   });
   io.listen(3080);
-
   io.on("connection", socket => { 
     socket.on("disconnect", function() {
         console.log('Got disconnect!');
       })
       
-    socket.on("webdownload", async ({link, iterations}) => {
+    socket.on("webdownload", async ({link, iterations, extend}) => {
       console.log("webdownload intitiated...")
       console.log(link+"    "+iterations);
       try {
@@ -39,8 +38,13 @@ const io = new Server({
         var urls = new Array();
         //Add starting url to array
         urls.push(link);
+        
         //Set to save urls extracted from current level
         const extractedUrls = new Set();
+
+        //Save root of url
+        const linkRoot = extractRoot(link);
+        const linkPath = extractPath(link);
 
         //Goes iterations deep in new pages
         while(iterations>0){
@@ -52,29 +56,36 @@ const io = new Server({
                     continue;
                 }
                 //Parse foldername and filename for file in zip
-                const urlWithoutHttps = await removeHttp(urls[i]);
-                await console.log("urlWithoutHttps="+urlWithoutHttps);
-                const fileName = await urlWithoutHttps.substring(urlWithoutHttps.lastIndexOf('/') + 1);
-                //await console.log("fileName="+fileName);
-                const folderName = await urlWithoutHttps.substring(urlWithoutHttps.lastIndexOf('/') + 1, '\0');
-                //await console.log("folderName="+folderName);
-                //Add file in correct folder of zip
-                //const folder = await zip.folder(folderName);
-                //await folder.file(fileName + ".html", pageHtml);
-                socket.emit("text", folderName, fileName, pageHtml)
+                const currentUrl = await removeHttp(urls[i]);
+                await console.log("currentUrl="+currentUrl);
+                const fileName = await extractFileName(currentUrl);
+                const folderName = await extractFolderName(currentUrl);
+                
                 //Mark url visited
-                await visitedUrlSet.add(urlWithoutHttps);
+                await visitedUrlSet.add(currentUrl);
                 //Extract potential urls for next level 
                 const potentialUrls = await extractUrls(pageHtml);
-                
+                const finalPageHtml = await pageHtml;
                 //Save urls which are not visited
-                if(typeof potentialUrls !== 'undefined'){
-                    for(let k = 0; k<potentialUrls.length; k++){
-                        if(!visitedUrlSet.has(potentialUrls[k])){
-                             extractedUrls.add(potentialUrls[k]);
+                const urlStuff = () => {
+                    if(typeof potentialUrls !== 'undefined'){
+                        for(let k = 0; k<potentialUrls.length; k++){
+                            if(!visitedUrlSet.has(potentialUrls[k])){
+                                if(extend==="Stay On Root" && !isStartMatching(potentialUrls[k], linkRoot)){continue;}
+                                else if(extend==="Stay On Path" && !isStartMatching(potentialUrls[k], linkPath)){continue;}
+                                extractedUrls.add(potentialUrls[k]);
+                                //console.log("here   "+potentialUrls[k])
+                                if(iterations>1){
+                                    console.log(potentialUrls[k]+"  a       "+getRelativePath(currentUrl, potentialUrls[k]))
+                                    finalPageHtml.replace(potentialUrls[k], getRelativePath(currentUrl, potentialUrls[k]));
+                                }
+                            }
                         }
                     }
                 }
+                await urlStuff();
+                //Exchange absolute paths with relative paths to other downloaded files; last level keeps abolsute paths
+                await socket.emit("text", folderName, fileName, finalPageHtml)
             }
 
 
@@ -85,7 +96,7 @@ const io = new Server({
             await iterations--;
             console.log(iterations);
         }
-        await socket.emit("end", "Every demanded files were send!");
+        await socket.emit("end", "Every demanded file was send!");
         const end = await Date.now();
         
         await console.log("Process finished!");
@@ -115,6 +126,51 @@ const io = new Server({
     return withoutHttp;
 }
 
+function extractFileName(url){
+    return url.substring(url.lastIndexOf('/') + 1);
+}
+
+function extractFolderName(url){
+    return url.substring(url.lastIndexOf('/') + 1, '\0');
+}
+
+function extractRoot(link){
+    return link.split("/")[0];
+}
+
+function extractPath(link){
+    return link.substring(link.lastIndexOf('/') + 1, '\0');
+}
+
+function isStartMatching(string, startString){//do reove https
+    try{
+        string = removeHttp(string);
+        startString = removeHttp(startString);
+        const tmp = string.substring(0, startString.length()-1);
+        return tmp===startString;
+    }catch(e){
+        return false;
+    }
+}
+
+
+function replaceString(string, oldPhrase, newPhrase){
+    return string.replace(oldPhrase, newPhrase);
+}
+
+function getSlashCount(string){
+    return string.split("/").length-1;
+}
+
+function getRelativePath(start, end){
+    start = removeHttp(start);
+    end = removeHttp(end);
+    const count = getSlashCount(start);
+    const res = "../".repeat(count)+extractFolderName(end)+extractFileName(end);
+    return res;
+}
+
+
 async function pageDownload(link) {
     try {
         const response = await axios.get(link);
@@ -128,6 +184,8 @@ async function pageDownload(link) {
         return "Error";
     }
   }
+
+
 
 /*
   async function download(link, name, iterations) {

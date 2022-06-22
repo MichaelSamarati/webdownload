@@ -12,13 +12,13 @@ It does only provide a static version of a website. It is not able to download t
 
 ## Dependencies
 - Client
-  - react
-  - react-bootstrap
-  - socket.io-client
+  - react 
+  - react-bootstrap (Frontend-CSS-Library)
+  - socket.io-client (Communication)
   - ...
 - Server
-  - socket.io
-  - jszip
+  - socket.io (Communication)
+  - jszip 
   - extract-urls
   - ...
 
