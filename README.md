@@ -1,10 +1,10 @@
 # WebDownload
 
 ## Usage
-WebDownload is an JavaScript app to download a website for offline usage. 
+WebDownload is an nodejs app to download a website for offline usage. 
 
 ### Disclaimer! 
-It does only provide a static version of a website. It is not able to download the code of websites.
+The application does only provide a static version of a website. It is not able to execute the code from the original website.
 
 ## Example
 
@@ -18,7 +18,7 @@ It does only provide a static version of a website. It is not able to download t
   - ...
 - Server
   - socket.io (Communication)
-  - jszip 
+  - jszip (Zip-Management)
   - extract-urls
   - ...
 

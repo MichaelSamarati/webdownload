@@ -17,7 +17,6 @@ function App() {
   }
   const updateExtend = (e) => {
     setInputs(inputs => ({ ...inputs, extend: e.target.value}));
-    console.log(e.target.value)
   }
   const updateLogin = (e) => {
     setInputs(inputs => ({ ...inputs, login: !inputs.login}));
@@ -47,7 +46,7 @@ function App() {
                 <Col sm={12}>
                 <Form.Group controlId="link" className="mb-2">
                   <Form.Label>Website Link</Form.Label>
-                  <Form.Control size="sm" onChange={updateLink} placeholder="example.com" type="text"></Form.Control>
+                  <Form.Control size="sm" onChange={updateLink} placeholder="https://example.com" type="text"></Form.Control>
                 </Form.Group>
                 </Col>
               </Row>

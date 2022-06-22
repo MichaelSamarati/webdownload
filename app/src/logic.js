@@ -60,7 +60,7 @@ function b64(e){var t="";var n=new Uint8Array(e);var r=n.byteLength;for(var i=0;
 
 
 export default async function downloadWebpage(name, link, iterations, extend) {
-    console.log("Download started!")
+    console.log("Process started!")
     try {
         const socket = io("http://localhost:3080");
 

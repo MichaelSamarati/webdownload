@@ -1,12 +1,9 @@
 //TODO fileextension if known default html
         //files without http at start search in href and src tags; 
-        // stay on root
-        //communication with client
         //make sure dont block each other aysnc await
         //evtl file limit or so
         //comment everything at end
-        //do permanently updates so probably websocket with client ;; 
-//statistics with iteration status and file count ;; 
+//statistics with iteration status and file count chart js;; 
 
 import axios from 'axios';
 import cors from 'cors';
@@ -22,16 +19,20 @@ const io = new Server({
   io.listen(3080);
   io.on("connection", socket => { 
     socket.on("disconnect", function() {
-        console.log('Got disconnect!');
-      })
+
+    })
       
     socket.on("webdownload", async ({link, iterations, extend}) => {
       console.log("webdownload intitiated...")
-      console.log(link+"    "+iterations);
       try {
         //Save start time
         const start = Date.now();
-
+        //Remove last slash if there
+        link = removeLastSlashIfThere(link);
+        //Save root and path of link
+        const linkRoot = extractRoot(link);
+        const linkPath = extractPath(link);
+        
         //Set to uniquely save the visited urls 
         const visitedUrlSet = new Set();
         //Array to hold current urls of level
@@ -42,10 +43,6 @@ const io = new Server({
         //Set to save urls extracted from current level
         const extractedUrls = new Set();
 
-        //Save root of url
-        const linkRoot = extractRoot(link);
-        const linkPath = extractPath(link);
-
         //Goes iterations deep in new pages
         while(iterations>0){
             //Goes every url in this level of deepness through
@@ -55,9 +52,8 @@ const io = new Server({
                 if(typeof pageHtml !== 'string'){
                     continue;
                 }
-                //Parse foldername and filename for file in zip
+                //Parse foldername and filename
                 const currentUrl = await removeHttp(urls[i]);
-                await console.log("currentUrl="+currentUrl);
                 const fileName = await extractFileName(currentUrl);
                 const folderName = await extractFolderName(currentUrl);
                 
@@ -65,19 +61,18 @@ const io = new Server({
                 await visitedUrlSet.add(currentUrl);
                 //Extract potential urls for next level 
                 const potentialUrls = await extractUrls(pageHtml);
-                const finalPageHtml = await pageHtml;
+                var finalPageHtml = await pageHtml;
+                
                 //Save urls which are not visited
-                const urlStuff = () => {
+                const urlStuff = async () => {
                     if(typeof potentialUrls !== 'undefined'){
                         for(let k = 0; k<potentialUrls.length; k++){
                             if(!visitedUrlSet.has(potentialUrls[k])){
                                 if(extend==="Stay On Root" && !isStartMatching(potentialUrls[k], linkRoot)){continue;}
                                 else if(extend==="Stay On Path" && !isStartMatching(potentialUrls[k], linkPath)){continue;}
                                 extractedUrls.add(potentialUrls[k]);
-                                //console.log("here   "+potentialUrls[k])
                                 if(iterations>1){
-                                    console.log(potentialUrls[k]+"  a       "+getRelativePath(currentUrl, potentialUrls[k]))
-                                    finalPageHtml.replace(potentialUrls[k], getRelativePath(currentUrl, potentialUrls[k]));
+                                    finalPageHtml = replaceString(finalPageHtml, potentialUrls[k], getRelativePath(currentUrl, potentialUrls[k])+".html");
                                 }
                             }
                         }
@@ -94,7 +89,6 @@ const io = new Server({
             await extractedUrls.clear();
             //Lower the level of deepness by one
             await iterations--;
-            console.log(iterations);
         }
         await socket.emit("end", "Every demanded file was send!");
         const end = await Date.now();
@@ -131,15 +125,20 @@ function extractFileName(url){
 }
 
 function extractFolderName(url){
-    return url.substring(url.lastIndexOf('/') + 1, '\0');
+    return url.substring(url.lastIndexOf('/') + 1 , '\0');
 }
 
 function extractRoot(link){
+    link = removeHttp(link);
     return link.split("/")[0];
 }
 
 function extractPath(link){
-    return link.substring(link.lastIndexOf('/') + 1, '\0');
+    link = removeHttp(link);
+    //return link.substring(link.lastIndexOf('/') + 1, '\0');
+    //link = link.substring(link.indexOf("?")+1, '\0');
+    link = removeLastSlashIfThere(link);
+    return link;
 }
 
 function isStartMatching(string, startString){//do reove https
@@ -155,7 +154,8 @@ function isStartMatching(string, startString){//do reove https
 
 
 function replaceString(string, oldPhrase, newPhrase){
-    return string.replace(oldPhrase, newPhrase);
+    var regex = RegExp(oldPhrase, "g");
+    return string.replace(regex, newPhrase);
 }
 
 function getSlashCount(string){
@@ -170,6 +170,12 @@ function getRelativePath(start, end){
     return res;
 }
 
+function removeLastSlashIfThere(string){
+    if(string.charAt(string.length-1)==="/"){
+        string = string.substring(string.length-1, '\0');
+    }
+    return string;
+}
 
 async function pageDownload(link) {
     try {
@@ -181,7 +187,7 @@ async function pageDownload(link) {
         return pageHtml;
     } catch (e) {
         console.log(e);
-        return "Error";
+        return "Error at page download";
     }
   }
 
