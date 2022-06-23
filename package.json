@@ -1,4 +1,7 @@
 {
+  "scripts":{
+    "deploy": "concurrently \"cd api && npm run server\" \"cd app && npm run start\""
+  },
   "dependencies": {
     "concurrently": "^7.2.2",
     "nodemon": "^2.0.16"
