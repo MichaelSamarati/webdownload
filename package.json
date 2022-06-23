@@ -8,8 +8,9 @@
     "node": "16.13.2"
   },
   "scripts": {
-    "heroku-postbuild": "npm install",
+    "heroku-postbuild": "npm run app-install && npm run build",
     "app-install": "npm install --prefix app",
+    "build": "cd app && npm run build",
     "start": "node server.js",
     "server": "nodemon server.js",
     "app": "npm start --prefix app",
