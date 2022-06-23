@@ -13,7 +13,7 @@ import { Server } from 'socket.io';
 
 const io = new Server({
     cors: {
-        origin: ["http://localhost:"+(process.env.PORT || 5000)]
+        origin: ["http://localhost:3000"]
     }
   });
   io.listen((process.env.PORT || 5000));
