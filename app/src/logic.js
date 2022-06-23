@@ -62,7 +62,7 @@ function b64(e){var t="";var n=new Uint8Array(e);var r=n.byteLength;for(var i=0;
 export default async function downloadWebpage(name, link, iterations, extend) {
     console.log("Process started!")
     try {
-        const socket = io("https://web-down-load-api.herokuapp.com");
+        const socket = io("https://web-down-load.herokuapp.com:5000");
 
 
 

@@ -16,7 +16,7 @@ const io = new Server({
         origin: ["https://web-down-load.herokuapp.com"]
     }
   });
-  io.listen(5000);
+  io.listen(process.env.PORT || 5000);
   io.on("connection", socket => { 
     socket.on("disconnect", function() {
 
