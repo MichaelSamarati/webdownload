@@ -1,6 +1,10 @@
 {
   "scripts": {
-    "start": "nodemon server.js"
+    "client-install": "npm install --prefix client",
+    "start": "node server.js",
+    "server": "nodemon server.js",
+    "client": "npm start --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "type": "module",
   "dependencies": {
@@ -10,6 +14,7 @@
     "express": "^4.18.1",
     "extract-urls": "^1.3.2",
     "fs": "^0.0.1-security",
+    "http-proxy-middleware": "^2.0.6",
     "jszip": "^3.10.0",
     "path": "^0.12.7",
     "socket.io": "^4.5.1",
