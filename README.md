@@ -23,5 +23,7 @@ The application does only provide a static version of a website. It is not able 
   - ...
 
 ## Deploy
+heroku login
+heroku git:remote -a "web-down-load"     
 git subtree push --prefix app heroku main
 
