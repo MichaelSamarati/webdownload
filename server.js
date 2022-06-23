@@ -4,7 +4,7 @@
         //evtl file limit or so
         //comment everything at end
 //statistics with iteration status and file count chart js;; 
-
+//wenn im head stehen dann immer downloaden wenn im body dann evtl
 import axios from 'axios';
 import cors from 'cors';
 import fs from 'fs';
