@@ -13,7 +13,7 @@ import { Server } from 'socket.io';
 
 const io = new Server({
     cors: {
-        origin: ["http://localhost:5000"]
+        origin: ["https://web-down-load.herokuapp.com/"]
     }
   });
   io.listen((process.env.PORT || 5000));
