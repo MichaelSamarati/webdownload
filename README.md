@@ -27,5 +27,6 @@ heroku login
 heroku git:remote -a "web-down-load"     
 git subtree push --prefix app heroku main
 git push heroku master
+heroku open
 
 
