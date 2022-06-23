@@ -67,7 +67,7 @@ function App() {
               <Row className="mt-2">
                 <Col sm={12} md={4} lg={4}>
                 <Form.Group controlId="extend1" className="mb-2">
-                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Everything" value="Everything" checked={inputs.extend==="Everything"}></Form.Check>
+                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Limitless" value="Limitless" checked={inputs.extend==="Everything"}></Form.Check>
                 </Form.Group>
                 </Col>
                 <Col sm={12} md={4} lg={4}>

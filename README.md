@@ -22,4 +22,6 @@ The application does only provide a static version of a website. It is not able 
   - extract-urls
   - ...
 
+## Deploy
+git subtree push --prefix app heroku main
 

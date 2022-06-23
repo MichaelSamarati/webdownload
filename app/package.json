@@ -29,7 +29,6 @@
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.9.2"
   },
-  "proxy": "https://www.google.com",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
