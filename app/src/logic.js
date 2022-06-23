@@ -63,7 +63,7 @@ export default async function downloadWebpage(name, link, iterations, extend) {
     console.log("Process started!")
     try {
         const socket = io("http://localhost:5000");
-
+        socket
 
 //parameter liste textdatei 
         socket.on('connect', () => {
