@@ -1,5 +1,14 @@
 {
+  "name": "webdownload",
+  "version": "0.1.0",
+  "private": true,
+  "main": "server.js",
+  "engines": {
+    "npm": "8.1.2", 
+    "node": "16.13.2"
+  },
   "scripts": {
+    "heroku-postbuild": "npm install",
     "app-install": "npm install --prefix app",
     "start": "node server.js",
     "server": "nodemon server.js",
