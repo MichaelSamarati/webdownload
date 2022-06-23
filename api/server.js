@@ -16,7 +16,7 @@ const io = new Server({
         origin: ["http://localhost:3000"]
     }
   });
-  io.listen(3080);
+  io.listen(5000);
   io.on("connection", socket => { 
     socket.on("disconnect", function() {
 
