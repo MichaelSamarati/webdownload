@@ -14,13 +14,17 @@ var axios = require('axios');
 var cors = require('cors');
 var fs = require('fs');
 var extractUrls = require('extract-urls');
-var io = require('socket.io');
-
-const io = new Server({
+var io = require('socket.io')({
     cors: {
         origin: ["http://localhost:3000"]
     }
   });
+
+// const io = new Server({
+//     cors: {
+//         origin: ["http://localhost:3000"]
+//     }
+//   });
   io.listen((process.env.PORT || 5000));
   io.on("connection", socket => { 
     socket.on("disconnect", function() {
