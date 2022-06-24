@@ -1,9 +1,6 @@
-import { saveAs } from "file-saver";
-import getUrls from 'get-urls';
+//import { saveAs } from "file-saver";
 import JSZip from 'jszip'; 
 //import puppeteer from "puppeteer"
-import axios from 'axios';
-import download from 'downloadjs';
 import io from 'socket.io-client';
 //import ss from 'socket.io-stream';
 //import fs from 'fs';
