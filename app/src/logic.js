@@ -1,4 +1,4 @@
-//import { saveAs } from "file-saver";
+import { saveAs } from "file-saver";
 import JSZip from 'jszip'; 
 //import puppeteer from "puppeteer"
 import io from 'socket.io-client';
