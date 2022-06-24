@@ -68,23 +68,29 @@ export default async function downloadWebpage(name, link, iterations, extend) {
         socket.on('disconnect', () => {
             //console.log("Disconnected!");
         })
-        socket.on("text", async function (folder, fileName, msg) {
+        socket.on("text", async function (folder, fileName, extension, msg) {
             const blob = new Blob([msg], { type: "text/plain" });
-            zip.folder(folder).file(fileName + ".html", msg);
+            zip.folder(folder).file(fileName + "."+extension, msg);
         })
-        socket.on("jpg", async function (folder, fileName, msg) {
+        socket.on("image", async function (folder, fileName, extension, msg) {
             const blob = new Blob([msg]);
-            zip.folder(folder).file(fileName + ".jpg", msg, {binary: true});
+            saveAs(msg, "towplane."+extension);
+            zip.folder(folder).file(fileName + "."+extension, msg, {binary: true});
             //oder zip.folder(folder).file(fileName + ".jpg", blob);
-            saveAs(msg, "towplane.jpg");
+        })
+        // socket.on("jpg", async function (folder, fileName, msg) {
+        //     const blob = new Blob([msg]);
+        //     zip.folder(folder).file(fileName + ".jpg", msg, {binary: true});
+        //     //oder zip.folder(folder).file(fileName + ".jpg", blob);
+        //     saveAs(msg, "towplane.jpg");
 
-        })
-        socket.on("png", async function (folder, fileName, msg) {
-            const blob = new Blob([msg]);
-            zip.folder(folder).file(fileName + ".png", msg, {binary: true});
-            //oder zip.folder(folder).file(fileName + ".png", blob);
-            saveAs(msg, "ms.png");
-        })
+        // })
+        // socket.on("png", async function (folder, fileName, msg) {
+        //     const blob = new Blob([msg]);
+        //     zip.folder(folder).file(fileName + ".png", msg, {binary: true});
+        //     //oder zip.folder(folder).file(fileName + ".png", blob);
+        //     saveAs(msg, "ms.png");
+        // })
 
         socket.on("end", async function (msg) {
             //Generate zip file

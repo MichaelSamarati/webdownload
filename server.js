@@ -37,7 +37,6 @@ io.on("connection", socket => {
         //Save root and path of link
         const linkRoot = extractRoot(link);
         const linkPath = extractPath(link);
-        
         //Set to uniquely save the visited urls 
         const visitedUrlSet = new Set();
         //Array to hold current urls of level
@@ -64,8 +63,20 @@ io.on("connection", socket => {
                 
                 //Mark url visited
                 await visitedUrlSet.add(currentUrl);
+
+                const regex = new RegExp("((href|src)=(\"|')((.|\n)*?)(\"|'))", "g");
+                const potentialUrls = pageHtml.match(regex);
+                const pageRootWithHttp = extractRootWithHttp(urls[i]);
+                for(let k = 0; k<potentialUrls.length; k++){
+                    console.log(potentialUrls[i]+"  m mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm")
+                    potentialUrls[k] = potentialUrls[k].split("\"")[1];
+                    if(!isStartMatching(potentialUrls[k], "http")){
+                        potentialUrls[k] = pageRootWithHttp+potentialUrls[k];
+                    }
+                }
+
                 //Extract potential urls for next level 
-                const potentialUrls = await extractUrls(pageHtml);
+                //const potentialUrls = await extractUrls(pageHtml);
                 var finalPageHtml = await pageHtml;
                 
                 //Save urls which are not visited
@@ -85,7 +96,7 @@ io.on("connection", socket => {
                 }
                 await urlStuff();
                 //Exchange absolute paths with relative paths to other downloaded files; last level keeps abolsute paths
-                await socket.emit("text", folderName, fileName, finalPageHtml)
+                await socket.emit("text", folderName, fileName, "html", finalPageHtml)
             }
 
 
@@ -136,6 +147,10 @@ function extractFolderName(url){
 function extractRoot(link){
     link = removeHttp(link);
     return link.split("/")[0];
+}
+function extractRootWithHttp(link){
+    const tmp = link.split("/")
+    return tmp[0]+"/"+tmp[1]+"/"+tmp[2];
 }
 
 function extractPath(link){
