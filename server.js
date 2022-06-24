@@ -5,11 +5,16 @@
         //comment everything at end
 //statistics with iteration status and file count chart js;; 
 //wenn im head stehen dann immer downloaden wenn im body dann evtl
-import axios from 'axios';
-import cors from 'cors';
-import fs from 'fs';
-import extractUrls from 'extract-urls';
-import { Server } from 'socket.io';
+// import axios from 'axios';
+// import cors from 'cors';
+// import fs from 'fs';
+// import extractUrls from 'extract-urls';
+// import { Server } from 'socket.io';
+var axios = require('axios');
+var cors = require('cors');
+var fs = require('fs');
+var extractUrls = require('extract-urls');
+var io = require('socket.io');
 
 const io = new Server({
     cors: {
