@@ -62,7 +62,7 @@ function b64(e){var t="";var n=new Uint8Array(e);var r=n.byteLength;for(var i=0;
 export default async function downloadWebpage(name, link, iterations, extend) {
     console.log("Process started!")
     try {
-        const socket = io("http://localhost:5000");
+        const socket = io("http://localhost:"+(process.env.PORT || 5000));
 
 //parameter liste textdatei 
         socket.on('connect', () => {
