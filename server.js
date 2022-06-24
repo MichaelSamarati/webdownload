@@ -17,7 +17,7 @@ var extractUrls = require('extract-urls');
 var httpServer = require("http").createServer();
 var io = require('socket.io')(httpServer, {
     cors: {
-        origin: ["http://localhost:3000"]
+        origin: ["https://web-down-load.herokuapp.com"]
     }
   });
 
