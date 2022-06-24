@@ -1,6 +1,6 @@
 This favicon was generated using the following font:
 
-- Font Title: Alatsi
-- Font Author: Copyright 2019 The Alatsi Project Authors (https://github.com/SorkinType/Alatsi)
-- Font Source: http://fonts.gstatic.com/s/alatsi/v9/TK3iWkUJAxQ2nLNGHjUHte5fKg.ttf
+- Font Title: Fredoka
+- Font Author: Copyright 2016 The Fredoka Project Authors (https://github.com/hafontia/Fredoka-One)
+- Font Source: http://fonts.gstatic.com/s/fredoka/v8/X7nP4b87HvSqjb_WIi2yDCRwoQ_k7367_B-i2yQag0-mac3OFiXMFuOLlNldbw.ttf
 - Font License: SIL Open Font License, 1.1 (http://scripts.sil.org/OFL))

@@ -19,15 +19,10 @@ var io = require('socket.io')(httpServer, {
     cors: {
         origin: ["https://web-down-load.herokuapp.com", "http://localhost:3000"]
     }
-  });
+});
 
-// const io = new Server({
-//     cors: {
-//         origin: ["http://localhost:3000"]
-//     }
-//   });
-  io.listen((process.env.PORT || 5000));
-  io.on("connection", socket => { 
+io.listen((process.env.PORT || 5000));
+io.on("connection", socket => { 
     socket.on("disconnect", function() {
 
     })
