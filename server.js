@@ -14,7 +14,7 @@ var axios = require('axios');
 var cors = require('cors');
 var fs = require('fs');
 var extractUrls = require('extract-urls');
-var io = require('socket.io')(server, {
+var io = require('socket.io')({
     cors: {
         origin: ["http://localhost:3000"]
     }
