@@ -30,5 +30,5 @@ git push heroku master
 heroku open
 heroku restart
 
-
+  "type": "module",
 

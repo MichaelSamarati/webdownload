@@ -16,7 +16,6 @@
     "app": "npm start --prefix app",
     "dev": "concurrently \"npm run server\" \"npm run app\""
   },
-  "type": "module",
   "dependencies": {
     "axios": "^0.27.2",
     "body-parser": "^1.20.0",
