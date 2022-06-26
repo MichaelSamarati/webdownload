@@ -32,11 +32,3 @@ heroku restart
 
 
 
-
-
-<div>((.|\n)*?)<\/div>
-(href|src)="((.|\n)*?)"
-((href|src)=("|')((.|\n)*?)("|'))
-var regex = new RegExp("((href|src)=(\"|')((.|\n)*?)(\"|'))", "g");
-<([^>])+(href|src)="((.|\n)*?)"([^<])+>(.)*<\/([^<])+>
-

@@ -5,6 +5,10 @@
         //comment everything at end
 //statistics with iteration status and file count chart js;; 
 //wenn im head stehen dann immer downloaden wenn im body dann evtl
+//man muss noch zum array adden aber am besten mergen zwei for loops
+//möglochkeoit plain download oder url exchange
+// Try catch nur wenn erflorrieh. Runterg3ldam dann link taduchen
+//onclikc da ist navigate function;; 
 // import axios from 'axios';
 // import cors from 'cors';
 // import fs from 'fs';
@@ -14,20 +18,24 @@ var axios = require('axios');
 var cors = require('cors');
 var fs = require('fs');
 var extractUrls = require('extract-urls');
+var Url = require('url');
+var Path = require('path');
 var httpServer = require("http").createServer();
 var io = require('socket.io')(httpServer, {
     cors: {
         origin: ["https://web-down-load.herokuapp.com", "http://localhost:3000"]
     }
 });
+const regexForUrlParsing = new RegExp(/((href|src)="((.|\n)*?)")/g);
 
 io.listen((process.env.PORT || 5000));
+
 io.on("connection", socket => { 
     socket.on("disconnect", function() {
 
     })
       
-    socket.on("webdownload", async ({link, iterations, extend}) => {
+    socket.on("webdownload", async ({link, iterations, extend, adjustPage}) => {
       console.log("webdownload intitiated...")
       try {
         //Save start time
@@ -52,72 +60,107 @@ io.on("connection", socket => {
             //Goes every url in this level of deepness through
             for(let i = 0; i<urls.length; i++){
                 //Get Data from url
-                const pageHtml = await pageDownload(urls[i]);
-                if(typeof pageHtml !== 'string'){
+                //console.log("now is urls[i] turn "+urls[i])
+                var pageContent = await pageDownload(urls[i]);
+                if(typeof pageContent !== 'string'){
                     continue;
                 }
                 //Parse foldername and filename
-                const currentUrl = await removeHttp(urls[i]);
-                const fileName = await extractFileName(currentUrl);
-                const folderName = await extractFolderName(currentUrl);
+                const currentUrl = removeHttp(urls[i]);
+                const fileName = extractFileName(currentUrl);
+                const folderName = extractFolderName(currentUrl);
                 
                 //Mark url visited
-                await visitedUrlSet.add(currentUrl);
+                visitedUrlSet.add(currentUrl);
 
-                const regex = new RegExp("((href|src)=(\"|')((.|\n)*?)(\"|'))", "g");
-                const potentialUrls = pageHtml.match(regex);
-                const pageRootWithHttp = extractRootWithHttp(urls[i]);
-                for(let k = 0; k<potentialUrls.length; k++){
-                    console.log(potentialUrls[i]+"  m mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm")
-                    potentialUrls[k] = potentialUrls[k].split("\"")[1];
-                    if(!isStartMatching(potentialUrls[k], "http")){
-                        potentialUrls[k] = pageRootWithHttp+potentialUrls[k];
-                    }
-                }
-
-                //Extract potential urls for next level 
-                //const potentialUrls = await extractUrls(pageHtml);
-                var finalPageHtml = await pageHtml;
                 
-                //Save urls which are not visited
-                const urlStuff = async () => {
-                    if(typeof potentialUrls !== 'undefined'){
+                    //Extract potential urls for next level 
+                    var potentialUrls = Array.from(pageContent.matchAll(regexForUrlParsing), m => m[0])
+                    const pageRootWithHttp = extractRootWithHttp(urls[i]);
+                    //const pagePathWithHttp = extractPathWithHttp(urls[i]);
+                    if(Array.isArray(potentialUrls)){
                         for(let k = 0; k<potentialUrls.length; k++){
                             if(!visitedUrlSet.has(potentialUrls[k])){
-                                if(extend==="Stay On Root" && !isStartMatching(potentialUrls[k], linkRoot)){continue;}
-                                else if(extend==="Stay On Path" && !isStartMatching(potentialUrls[k], linkPath)){continue;}
-                                extractedUrls.add(potentialUrls[k]);
-                                if(iterations>1){
-                                    finalPageHtml = replaceString(finalPageHtml, potentialUrls[k], getRelativePath(currentUrl, potentialUrls[k])+".html");
+                                //const nowUrl = removeHttp(potentialUrls[k]);
+                                //console.log("nowUrl"+nowUrl+"linkRoot"+linkRoot)
+                                
+                                extractedUrl = potentialUrls[k].split("\"")[1];
+                                //console.log(extractedUrl+"  ghhghghgh")
+                                var fullUrl;
+                                if(isStartMatching(extractedUrl, "http")){
+                                    fullUrl = extractedUrl;
+                                }else{
+                                    fullUrl = pageRootWithHttp+extractedUrl;
                                 }
+                                const nowUrlWithoutHttp = removeHttp(fullUrl);
+                                if(extend==="Stay On Root" && !isStartMatching(nowUrlWithoutHttp, linkRoot)){continue;}
+                                else if(extend==="Stay On Path" && !isStartMatching(nowUrlWithoutHttp, linkPath)){continue;}
+                                extractedUrls.add(fullUrl);
+                                if(adjustPage){
+                                const nowFileName = extractFileName(nowUrlWithoutHttp);
+                                const nowFolderName = extractFolderName(nowUrlWithoutHttp);
+                                const nowExtension = extractExtension(nowFileName);  
+                                //console.log(extractedUrl+" "+nowFolderName+" "+nowFileName)
+                                if(nowExtension==="html"){
+                                    try{
+                                        //pageContent = replaceString(pageContent, extractedUrl, nowFolderName+nowFileName);//getRelativePath(currentUrl, fullUrl));
+                                        pageContent = replaceString(pageContent, extractedUrl, getRelativePath(currentUrl, fullUrl));
+                                    }catch(e){
+                                        console.log(nowExtension)
+                                    }
+                                }
+                            }
                             }
                         }
                     }
+                const extension = extractExtension(fileName);
+                if(extension==="png" || extension==="jpg" || extension==="svg" || extension==="ico" || extension==="tiff" || extension==="gif"){
+                    socket.emit("image", folderName, fileName, extension, pageContent)
                 }
-                await urlStuff();
-                //Exchange absolute paths with relative paths to other downloaded files; last level keeps abolsute paths
-                await socket.emit("text", folderName, fileName, "html", finalPageHtml)
+                socket.emit("text", folderName, fileName, extension, pageContent)
             }
 
-
             //Save extracted urls to array and reset the set for next level
-            urls = await [...extractedUrls];
-            await extractedUrls.clear();
+            urls = [...extractedUrls];
+            extractedUrls.clear();
             //Lower the level of deepness by one
-            await iterations--;
+            iterations--;
         }
-        await socket.emit("end", "Every demanded file was send!");
-        const end = await Date.now();
+        socket.emit("end", "Every demanded file was send!");
+        const end = Date.now();
         
-        await console.log("Process finished!");
-        await console.log("Process took "+((end-start)/1000)+" seconds");
+        console.log("Process finished!");
+        console.log("Process took "+((end-start)/1000)+" seconds");
     } catch (e) {
         console.log(e);
         console.log("Process failed!");
         console.log("error", "An error occured on the server!")
     }
 
+/**
+ * 
+<div>((.|\n)*?)<\/div>
+(href|src)="((.|\n)*?)"
+<([^>])+(href|src)="((.|\n)*?)"([^<])+>(.)*<\/([^<])+>
 
+
+ * var urlStuff = async () => {
+                        if(typeof potentialUrls !== 'undefined'){
+                            for(let k = 0; k<potentialUrls.length; k++){
+                                if(!visitedUrlSet.has(potentialUrls[k])){
+                                    const nowUrl = removeHttp(potentialUrls[k]);
+                                    if(extend==="Stay On Root" && !isStartMatching(nowUrl, linkRoot)){continue;}
+                                    else if(extend==="Stay On Path" && !isStartMatching(nowUrl, linkPath)){continue;}
+                                    extractedUrls.add(potentialUrls[k]);
+                                    if(iterations>1){
+                                        pageHtml = replaceString(pageHtml, potentialUrls[k], getRelativePath(currentUrl, potentialUrls[k])+".html");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    await urlStuff();
+ */
         //socket.emit("text", "Path", "Test")
       
         // fs.readFile('ms.png', function(err, data){
@@ -131,9 +174,14 @@ io.on("connection", socket => {
   });
 
 
-  function removeHttp(url) {
+function removeHttp(url) {
     const withoutHttp = url.replace(/^https?:\/\//, '');
     return withoutHttp;
+}
+
+function removeUrlParameters(url) {
+    const tmp = url.split("?");
+    return tmp[0];
 }
 
 function extractFileName(url){
@@ -153,6 +201,11 @@ function extractRootWithHttp(link){
     return tmp[0]+"/"+tmp[1]+"/"+tmp[2];
 }
 
+function extractPathWithHttp(link){
+    link = removeLastSlashIfThere(link);
+    return link+"/";
+}
+
 function extractPath(link){
     link = removeHttp(link);
     //return link.substring(link.lastIndexOf('/') + 1, '\0');
@@ -161,11 +214,26 @@ function extractPath(link){
     return link;
 }
 
-function isStartMatching(string, startString){//do reove https
+function extractExtension(url){
     try{
-        string = removeHttp(string);
-        startString = removeHttp(startString);
-        const tmp = string.substring(0, startString.length()-1);
+        if(lastPartAfterSlash.indexOf("/") === -1){return "html";}
+        const tmp = removeUrlParameters(url);
+        const slashSeperation = tmp.split("/");
+        const lastPartAfterSlash = slashSeperation[slashSeperation.length-1];
+        if(lastPartAfterSlash.indexOf(".") === -1){return "html";}
+        const pointSeperation = lastPartAfterSlash.split(".");
+        const lastPart = pointSeperation[pointSeperation.length-1];
+        return lastPart;
+    }catch(e){
+        return "html";
+    }
+    
+    //return Path.extname(Url.parse(url).pathname); 
+}
+
+function isStartMatching(string, startString){
+    try{
+        const tmp = string.substring(0, startString.length);
         return tmp===startString;
     }catch(e){
         return false;
@@ -175,7 +243,8 @@ function isStartMatching(string, startString){//do reove https
 
 function replaceString(string, oldPhrase, newPhrase){
     var regex = RegExp(oldPhrase, "g");
-    return string.replace(regex, newPhrase);
+    return string.replaceAll(regex, newPhrase);
+    //return string;
 }
 
 function getSlashCount(string){
@@ -186,7 +255,8 @@ function getRelativePath(start, end){
     start = removeHttp(start);
     end = removeHttp(end);
     const count = getSlashCount(start);
-    const res = "../".repeat(count)+extractFolderName(end)+extractFileName(end);
+    //const res = "../".repeat(count)+extractFolderName(end)+extractFileName(end);
+    const res = extractFolderName(end)+extractFileName(end);
     return res;
 }
 

@@ -56,7 +56,7 @@ function b64(e){var t="";var n=new Uint8Array(e);var r=n.byteLength;for(var i=0;
 */
 
 
-export default async function downloadWebpage(name, link, iterations, extend) {
+export default async function downloadWebpage(name, link, iterations, extend, adjustPage) {
     console.log("Process started!")
     try {
         const socket = io("http://localhost:5000");
@@ -71,6 +71,7 @@ export default async function downloadWebpage(name, link, iterations, extend) {
         socket.on("text", async function (folder, fileName, extension, msg) {
             const blob = new Blob([msg], { type: "text/plain" });
             zip.folder(folder).file(fileName + "."+extension, msg);
+            saveAs(blob, fileName + "."+extension)
         })
         socket.on("image", async function (folder, fileName, extension, msg) {
             const blob = new Blob([msg]);
@@ -127,7 +128,7 @@ export default async function downloadWebpage(name, link, iterations, extend) {
         //Save start time
         const start = Date.now();
         //Initiate website download
-        socket.emit("webdownload", {link: link, iterations: iterations, extend: extend});
+        socket.emit("webdownload", {link: link, iterations: iterations, extend: extend, adjustPage: adjustPage});
         //Initilize zip file
         const zip = new JSZip();
         ////Test

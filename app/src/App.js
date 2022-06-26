@@ -4,7 +4,7 @@ import { Container, Row, Col, Alert, Form, Button } from 'react-bootstrap'
 import downloadWebpage from './logic.js'
 
 function App() {
-  const [inputs, setInputs] = useState({name: "file", link: "https://example.com", iterations: 2, extend: "Everything", login: false});
+  const [inputs, setInputs] = useState({name: "file", link: "https://example.com", iterations: 2, extend: "Limitless", adjustPage: true, login: false});
 
   const updateName = (e) => {
     setInputs(inputs => ({ ...inputs, name: e.target.value }));
@@ -18,6 +18,9 @@ function App() {
   const updateExtend = (e) => {
     setInputs(inputs => ({ ...inputs, extend: e.target.value}));
   }
+  const updateAdjustPage = (e) => {
+    setInputs(inputs => ({ ...inputs, adjustPage: !inputs.adjustPage}));
+  }
   const updateLogin = (e) => {
     setInputs(inputs => ({ ...inputs, login: !inputs.login}));
   }
@@ -29,8 +32,8 @@ function App() {
   }
   const handleSubmit = (e) => {
     e.preventDefault()
-    //console.log(inputs)
-    downloadWebpage(inputs.name, inputs.link, inputs.iterations, inputs.extend)
+    console.log(inputs)
+    downloadWebpage(inputs.name, inputs.link, inputs.iterations, inputs.extend, inputs.adjustPage)
   }
   return (
       <Container>
@@ -67,24 +70,29 @@ function App() {
               <Row className="mt-2">
                 <Col sm={12} md={4} lg={4}>
                 <Form.Group controlId="extend1" className="mb-2">
-                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Limitless" value="Limitless" checked={inputs.extend==="Everything"}></Form.Check>
-                </Form.Group>
-                </Col>
-                <Col sm={12} md={4} lg={4}>
-                <Form.Group controlId="extend3" className="mb-2">
-                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Stay On Root" value="Stay On Root" checked={inputs.extend==="Stay On Root"}></Form.Check>
+                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Limitless" value="Limitless" checked={inputs.extend==="Limitless"}></Form.Check>
                 </Form.Group>
                 </Col>
                 <Col sm={12} md={4} lg={4}>
                 <Form.Group controlId="extend2" className="mb-2">
+                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Stay On Root" value="Stay On Root" checked={inputs.extend==="Stay On Root"}></Form.Check>
+                </Form.Group>
+                </Col>
+                <Col sm={12} md={4} lg={4}>
+                <Form.Group controlId="extend3" className="mb-2">
                   <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Stay On Path" value="Stay On Path" checked={inputs.extend==="Stay On Path"}></Form.Check>
                 </Form.Group>
                 </Col>
 
               </Row>
               <Row className="mt-1">
+              <Form.Group controlId="adjustpage" className="mb-2">
+                <Form.Check size="sm" onChange={updateAdjustPage} type="switch" label="Link Files" checked={inputs.adjustPage}></Form.Check>
+              </Form.Group>
+              </Row>
+              <Row className="mt-1">
               <Form.Group controlId="login" className="mb-2">
-                <Form.Check size="sm" onChange={updateLogin} type="switch" label="Login"></Form.Check>
+                <Form.Check size="sm" onChange={updateLogin} type="switch" label="Login" checked={inputs.login}></Form.Check>
               </Form.Group>
               </Row>
               <Row>
