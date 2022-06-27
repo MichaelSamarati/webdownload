@@ -56,11 +56,14 @@ function b64(e){var t="";var n=new Uint8Array(e);var r=n.byteLength;for(var i=0;
 */
 
 
-export default async function downloadWebpage(name, link, iterations, extend, adjustPage) {
+export default async function downloadWebpage(status, setStatus, name, link, iterations, extend, adjustPage) {
     console.log("Process started!")
     try {
-        const socket = io("http://localhost:5000");
+        //Save start time
+        const start = Date.now();
 
+        const socket = io("http://localhost:5000");
+        var currentIteration;
 //parameter liste textdatei 
         socket.on('connect', () => {
             //console.log("Connected with server!");
@@ -69,15 +72,21 @@ export default async function downloadWebpage(name, link, iterations, extend, ad
             //console.log("Disconnected!");
         })
         socket.on("text", async function (folder, fileName, extension, msg) {
-            const blob = new Blob([msg], { type: "text/plain" });
+            incrementFileCount();
+            //const blob = new Blob([msg], { type: "text/plain" });
             zip.folder(folder).file(fileName + "."+extension, msg);
-            saveAs(blob, fileName + "."+extension)
+            //saveAs(blob, fileName + "."+extension)
         })
         socket.on("image", async function (folder, fileName, extension, msg) {
-            const blob = new Blob([msg]);
-            saveAs(msg, fileName+"."+extension);
+            incrementFileCount();
+            //const blob = new Blob([msg]);
+            //saveAs(msg, fileName+"."+extension);
             zip.folder(folder).file(fileName + "."+extension, msg, {binary: true});
             //oder zip.folder(folder).file(fileName + ".jpg", blob);
+        })
+        socket.on("status", async function (iteration) {
+            currentIteration = iteration;
+            console.log(currentIteration)
         })
         // socket.on("jpg", async function (folder, fileName, msg) {
         //     const blob = new Blob([msg]);
@@ -104,6 +113,13 @@ export default async function downloadWebpage(name, link, iterations, extend, ad
             await console.log("Process took "+((end-start)/1000)+" seconds");
             socket.disconnect();
         })
+        function incrementFileCount(){
+            // setStatus(prev => {
+            //     const obj = {...prev};
+            //     console.log(obj)
+            //     obj.datasets[0].data[currentIteration+1] = obj.datasets[0].data[currentIteration-1]+1;
+            // })
+        }
         // socket.on("text", async function (folder, filename, msg) {
         //     const blob = new Blob([msg], { type: "text/plain" });
         //     console.log(blob.size + "  text")
@@ -125,8 +141,29 @@ export default async function downloadWebpage(name, link, iterations, extend, ad
         socket.on("error", async function (error) {
             console.log(error)
         })
-        //Save start time
-        const start = Date.now();
+        var labels = [];
+        var data = [];
+        for(let i = 1; i<=iterations; i++){
+            labels.push(i);
+            data.push(0);
+        }
+        setStatus(prev => {
+            var obj = {...prev};
+                console.log(obj);
+                obj.labels = labels;
+                console.log(obj.datasets[0].data)
+                console.log(data)
+                obj.datasets[0].data = data;
+                return obj
+            // labels, 
+            // datasets: [
+            // {
+            //     label: "dada",
+            //     data: data
+            // }
+            // ],
+        })
+
         //Initiate website download
         socket.emit("webdownload", {link: link, iterations: iterations, extend: extend, adjustPage: adjustPage});
         //Initilize zip file

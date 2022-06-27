@@ -2,10 +2,40 @@ import React, {useState, useEffect} from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { Container, Row, Col, Alert, Form, Button } from 'react-bootstrap'
 import downloadWebpage from './logic.js'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import Chart from './Chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 function App() {
+  const [isDownload, setDownload] = useState(false);
   const [inputs, setInputs] = useState({name: "Example", link: "https://example.com", iterations: 2, extend: "Limitless", adjustPage: true, login: false});
-
+  const [status, setStatus] = useState({
+    labels: [5,6,7,8],
+    datasets: [{
+      label: "Downloaded Files At Iteration",
+      data: [1,3,7,20],
+      backgroundColor: "#0275d8" 
+    }]
+  });
+  // useEffect(() => {
+  //   chart.update
+  // }, status)
   const updateName = (e) => {
     setInputs(inputs => ({ ...inputs, name: e.target.value }));
   }
@@ -30,10 +60,14 @@ function App() {
   const updatePassword = (e) => {
     setInputs(inputs => ({ ...inputs, password: e.target.value }));
   }
+  const cancelDownload = (e) => {
+    setDownload(false)
+  }
   const handleSubmit = (e) => {
     e.preventDefault()
+    setDownload(true)
     console.log(inputs)
-    downloadWebpage(inputs.name, inputs.link, inputs.iterations, inputs.extend, inputs.adjustPage)
+    downloadWebpage(status, setStatus, inputs.name, inputs.link, inputs.iterations, inputs.extend, inputs.adjustPage)
   }
   return (
       <Container>
@@ -85,12 +119,12 @@ function App() {
                 </Col>
 
               </Row>
-              <Row className="mt-1">
+              <Row className="mt-2">
               <Form.Group controlId="adjustpage" className="mb-2">
                 <Form.Check size="sm" onChange={updateAdjustPage} type="switch" label="Link Files" checked={inputs.adjustPage}></Form.Check>
               </Form.Group>
               </Row>
-              <Row className="mt-1">
+              <Row className="mt-2">
               <Form.Group controlId="login" className="mb-2">
                 <Form.Check size="sm" onChange={updateLogin} type="switch" label="Login" checked={inputs.login}></Form.Check>
               </Form.Group>
@@ -110,11 +144,19 @@ function App() {
                 </Col>
               </Row>
             </Form>
-            <Row className="text-center">
+            <Row className="mt-3 text-center">
               <Col>
-                <Button className="mt-3 fs-5" type="submit" onClick={handleSubmit}>Download Webpage</Button>
+                <Button className="fs-5" type="submit" onClick={handleSubmit}>Download Webpage</Button>
+              </Col>
+              <Col>
+                <Button className="fs-5" variant="secondary" disabled={!isDownload} onClick={cancelDownload}>Cancel</Button>
               </Col>
             </Row>
+          </Col>
+        </Row>
+        <Row className="mt-4 mb-5">
+          <Col>
+            <Chart id="chart" chartData={status} style={{backgroundColor: "white"}}></Chart>
           </Col>
         </Row>
       </Container>
