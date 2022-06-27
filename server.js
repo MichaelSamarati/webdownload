@@ -1,7 +1,4 @@
-//TODO fileextension if known default html
-        //files without http at start search in href and src tags; 
-        //make sure dont block each other aysnc await
-        //evtl file limit or so
+//TODO 
         //comment everything at end
 //statistics with iteration status and file count chart js;; 
 //wenn im head stehen dann immer downloaden wenn im body dann evtl
@@ -9,24 +6,21 @@
 //möglochkeoit plain download oder url exchange
 // Try catch nur wenn erflorrieh. Runterg3ldam dann link taduchen
 //onclikc da ist navigate function;; 
-// import axios from 'axios';
-// import cors from 'cors';
-// import fs from 'fs';
-// import extractUrls from 'extract-urls';
-// import { Server } from 'socket.io';
+//remove hashes 
+//maybe eigene ordner
 var axios = require('axios');
 var cors = require('cors');
 var fs = require('fs');
 var extractUrls = require('extract-urls');
 var Url = require('url');
 var Path = require('path');
+const regexForUrlParsing = new RegExp(/((href|src)="((.|\n)*?)")/g);
 var httpServer = require("http").createServer();
 var io = require('socket.io')(httpServer, {
     cors: {
         origin: ["https://web-down-load.herokuapp.com", "http://localhost:3000"]
     }
 });
-const regexForUrlParsing = new RegExp(/((href|src)="((.|\n)*?)")/g);
 
 io.listen((process.env.PORT || 5000));
 
@@ -60,7 +54,6 @@ io.on("connection", socket => {
             //Goes every url in this level of deepness through
             for(let i = 0; i<urls.length; i++){
                 //Get Data from url
-                //console.log("now is urls[i] turn "+urls[i])
                 var pageContent = await pageDownload(urls[i]);
                 if(typeof pageContent !== 'string'){
                     continue;
@@ -97,27 +90,34 @@ io.on("connection", socket => {
                                 else if(extend==="Stay On Path" && !isStartMatching(nowUrlWithoutHttp, linkPath)){continue;}
                                 extractedUrls.add(fullUrl);
                                 if(adjustPage){
-                                const nowFileName = extractFileName(nowUrlWithoutHttp);
-                                const nowFolderName = extractFolderName(nowUrlWithoutHttp);
-                                const nowExtension = extractExtension(nowFileName);  
-                                //console.log(extractedUrl+" "+nowFolderName+" "+nowFileName)
-                                if(nowExtension==="html"){
-                                    try{
-                                        //pageContent = replaceString(pageContent, extractedUrl, nowFolderName+nowFileName);//getRelativePath(currentUrl, fullUrl));
-                                        pageContent = replaceString(pageContent, extractedUrl, getRelativePath(currentUrl, fullUrl));
-                                    }catch(e){
-                                        console.log(nowExtension)
+                                    const nowFileName = extractFileName(nowUrlWithoutHttp);
+                                    const nowFolderName = extractFolderName(nowUrlWithoutHttp);
+                                    const nowExtension = extractExtension(nowUrlWithoutHttp);  
+                                    //console.log(extractedUrl+" "+nowExtension)
+                                    //console.log(extractedUrl+" "+nowFolderName+" "+nowFileName)
+                                    if(nowExtension==="html"){
+                                        try{
+                                            const oldPhrase = potentialUrls[k].split("=")[1];
+                                            pageContent = replaceString(pageContent, oldPhrase, "\""+getRelativePath(currentUrl, fullUrl)+"."+nowExtension+"\"");
+                                        }catch(e){
+                                            console.log(nowExtension)
+                                        }
+                                    }else{
+                                        //console.log(nowExtension)
+                                        try{
+                                            const nowPageContent = await pageDownloadWithErrorThrow(fullUrl);
+                                            sendFile(nowFolderName, nowFileName, nowExtension, nowPageContent);
+                                        }catch(e){
+                                            console.log("File could not be downloaded!")
+                                        }
+                                        
                                     }
                                 }
-                            }
                             }
                         }
                     }
                 const extension = extractExtension(fileName);
-                if(extension==="png" || extension==="jpg" || extension==="svg" || extension==="ico" || extension==="tiff" || extension==="gif"){
-                    socket.emit("image", folderName, fileName, extension, pageContent)
-                }
-                socket.emit("text", folderName, fileName, extension, pageContent)
+                sendFile(folderName, fileName, extension, pageContent);
             }
 
             //Save extracted urls to array and reset the set for next level
@@ -171,6 +171,16 @@ io.on("connection", socket => {
         // });
       
     });
+    function sendFile(folderName, fileName, extension, pageContent){
+        //console.log(folderName+" "+fileName+" "+extension+" ")
+        if(extension==="html" || extension==="css" || extension==="txt" || extension==="pdf"){
+            socket.emit("text", folderName, fileName, extension, pageContent)
+        }else if(extension==="png" || extension==="jpg" || extension==="svg" || extension==="ico" || extension==="tiff" || extension==="gif"){
+            socket.emit("image", folderName, fileName, extension, pageContent)
+        }else{
+            socket.emit("text", folderName, fileName, extension, pageContent)
+        }
+    }
   });
 
 
@@ -185,7 +195,13 @@ function removeUrlParameters(url) {
 }
 
 function extractFileName(url){
-    return url.substring(url.lastIndexOf('/') + 1);
+    const slashCount = getSlashCount(url)-1 ;
+    console.log(url+" "+slashCount)
+    if(slashCount===0){return url;}
+    const lastPart = url.substring(url.lastIndexOf('/') + 1);
+    const pointSeperation = lastPart.split(".");
+    console.log(lastPart    +" "+pointSeperation[0])
+    return pointSeperation[0];
 }
 
 function extractFolderName(url){
@@ -216,19 +232,18 @@ function extractPath(link){
 
 function extractExtension(url){
     try{
-        if(lastPartAfterSlash.indexOf("/") === -1){return "html";}
+        if(url.indexOf("/") === -1){return "html";}
         const tmp = removeUrlParameters(url);
         const slashSeperation = tmp.split("/");
         const lastPartAfterSlash = slashSeperation[slashSeperation.length-1];
         if(lastPartAfterSlash.indexOf(".") === -1){return "html";}
         const pointSeperation = lastPartAfterSlash.split(".");
         const lastPart = pointSeperation[pointSeperation.length-1];
+        if(lastPart==="htm"){lastPart = "html";}
         return lastPart;
     }catch(e){
         return "html";
-    }
-    
-    //return Path.extname(Url.parse(url).pathname); 
+    } 
 }
 
 function isStartMatching(string, startString){
@@ -244,19 +259,22 @@ function isStartMatching(string, startString){
 function replaceString(string, oldPhrase, newPhrase){
     var regex = RegExp(oldPhrase, "g");
     return string.replaceAll(regex, newPhrase);
-    //return string;
 }
 
 function getSlashCount(string){
-    return string.split("/").length-1;
+    return string.split("/").length;
 }
 
 function getRelativePath(start, end){
     start = removeHttp(start);
     end = removeHttp(end);
-    const count = getSlashCount(start);
+    const count = getSlashCount(start)-1;
     //const res = "../".repeat(count)+extractFolderName(end)+extractFileName(end);
-    const res = extractFolderName(end)+extractFileName(end);
+    const folderName = extractFolderName(end);
+    const fileName = extractFileName(end);
+    //if(getSlashCount(folderName)===0){folderName = removeLastSlashIfThere(folderName);}
+    const res = folderName+fileName;
+    //res = removeLastSlashIfThere(res);
     return res;
 }
 
@@ -273,315 +291,23 @@ async function pageDownload(link) {
         if (response.status !== 200) {
             console.log('Looks like there was a problem. Status Code: ' + response.status);
         }
-        const pageHtml = await response.data;
-        return pageHtml;
+        const pageContent = await response.data;
+        return pageContent;
     } catch (e) {
         console.log(e);
         return "Error at page download";
     }
   }
 
-
-
-/*
-  async function download(link, name, iterations) {
-        console.log("Process started!")
-        try {
-            //Save start time
-            const start = Date.now();
-
-            //Set to uniquely save the visited urls 
-            const urlVisitedSet = new Set();
-            //Array to hold current urls of level
-            var urls = new Array();
-            //Add starting url to array
-            urls.push(link);
-            //Set to save urls extracted from current level
-            const extractedUrls = new Set();
-    
-            //Test
-            zip.file("test.txt", "Just to see if zip works");
-    
-            //Goes iterations deep in new pages
-            while(iterations>0){
-                //Goes every url in this level of deepness through
-                for(let i = 0; i<urls.length; i++){
-                    //Get Data from url
-                    const pageHtml = await pageDownload(urls[i]);
-                    if(typeof pageHtml !== 'string'){
-                        //JSON.stringify(pageHtml);
-                        continue;
-                    }
-                    //Parse foldername and filename for file in zip
-                    const urlWithoutHttps = await removeHttp(urls[i]);
-                    await console.log("urlWithoutHttps="+urlWithoutHttps);
-                    const fileName = await urlWithoutHttps.substring(urlWithoutHttps.lastIndexOf('/') + 1);
-                    //await console.log("fileName="+fileName);
-                    const folderName = await urlWithoutHttps.substring(urlWithoutHttps.lastIndexOf('/') + 1, '\0');
-                    //await console.log("folderName="+folderName);
-                    //Add file in correct folder of zip
-                    const folder = await zip.folder(folderName);
-                    await folder.file(fileName + ".html", pageHtml);
-                    //Mark url visited
-                    await urlVisitedSet.add(fileName);
-                    //Extract potential urls for next level 
-                    const potentialUrls = await extractUrls(pageHtml);
-                    
-                    //Save urls which are not visited
-                    if(typeof potentialUrls !== 'undefined'){
-                        for(let k = 0; k<potentialUrls.length; k++){
-                            if(!urlVisitedSet.has(potentialUrls[k])){
-                                 extractedUrls.add(potentialUrls[k]);
-                            }
-                        }
-                    }
-                }
-    
-    
-                //Save extracted urls to array and reset the set for next level
-                urls = await [...extractedUrls];
-                await extractedUrls.clear();
-                //Lower the level of deepness by one
-                await iterations--;
-                console.log(iterations);
-            }
-            //Generate zip file
-            const content = await zip.generateAsync({ type: "nodebuffer" });
-    
-            const end = await Date.now();
-            
-            await console.log("Process finished!");
-            await console.log("Process took "+((end-start)/1000)+" seconds");
-            return content;
-        } catch (e) {
-            console.log(e);
-            console.log("Process failed!");
-            return "Error";
+  async function pageDownloadWithErrorThrow(link) {
+    try {
+        const response = await axios.get(link);
+        if (response.status !== 200) {
+            console.log('Looks like there was a problem. Status Code: ' + response.status);
         }
-    
+        const pageContent = await response.data;
+        return pageContent;
+    } catch (e) {
+        throw e;
     }
-    
-
-*/
-
-//https://gist.github.com/companje/b95e735650f1cd2e2a41
-/*
-
-console.log(fs.readFileSync("towplane.jpg").toString('base64').length+ " dwa da dw")
-        //fs.writeFile('test10.zip', zip.generate({ type: "base64" }), 'binary', function (error) {});
-        //     console.log('wrote test1.zip', error);
-        // });
-        //var bufArr = new ArrayBuffer(zip);
-        //socket.binaryType = 'arraybuffer';
-        //console.log(f.length+ "length send")
-        //stream.pipe(fs.createWriteStream('test10.zip'));
-        //socket.emit("zip", {'file':zip.toString('base64')});
-        //socket.emit("zip", fs.createReadStream('file.jpg'))
-
- //socket.emit("png", fs.readFileSync("ms.png", {encoding: 'base64'})) // , { image: true, buffer: data }
-
-        //socket.emit("jpg", fs.readFileSync('towplane.jpg', {encoding: 'base64'})) // , { image: true, buffer: data }
-        
-
-        //socket.emit("jpg", { image: true, buffer: (fs.readFileSync('towplane.jpg', 'base64').toString())})
-        //const buf = fs.readFileSync("towplane.jpg");
-        //socket.emit("jpg", "Path", { image: true, buffer: buf });
-
-
-        //socket.emit("zip", {'file':fs.readFile("test10.zip", 'utf8').toString('base64')});
-        //const bytes = new Uint8Array(zip);
-        //console.log(zip)
-        //socket.emit("zip", new Blob(["awdwaawd"]));
-        //socket.emit(fs.createReadStream(zip.generate({ type: "nodebuffer" })));
-*/ 
-
-
-
-
-
-
-// var app = express();
-// var port = 3080;
-
-// app.use(cors());
-
-// app.get('/', function (req, res) {
-//     res.send('Hello World!');
-// });
-
-// app.get('/webdownload', function async(req, res) {
-//     console.log(req.query.link + " was the request");
-//     (async function () {
-//         const d = await download(req.query.link, req.query.name, req.query.iterations);
-//         res.set({
-//             'Content-Type': 'application/zip',
-//         });
-//         res.status(200).send(d);
-//     })();
-
-// });
-
-// app.listen(port, function () {
-//     console.log('Webdownload api listening on port ' + port + '!');
-// });
-
-
-
-
-
-// async function download(link, name, iterations) {
-//     console.log("Process started!")
-//     try {
-//         const start = Date.now();
-
-
-//         //Initilize zip file
-//         const zip = new JSZip();
-//         //Set to uniquely save the visited urls 
-//         const urlVisitedSet = new Set();
-//         //Array to hold current urls of level
-//         var urls = new Array();
-//         //Add starting url to array
-//         urls.push(link);
-//         //Set to save urls extracted from current level
-//         const extractedUrls = new Set();
-
-//         //Test
-//         zip.file("test.txt", "Just to see if zip works");
-
-//         //Goes iterations deep in new pages
-//         while(iterations>0){
-//             //Goes every url in this level of deepness through
-//             for(let i = 0; i<urls.length; i++){
-//                 //Get Data from url
-//                 const pageHtml = await pageDownload(urls[i]);
-//                 if(typeof pageHtml !== 'string'){
-//                     //JSON.stringify(pageHtml);
-//                     continue;
-//                 }
-//                 //Parse foldername and filename for file in zip
-//                 const urlWithoutHttps = await removeHttp(urls[i]);
-//                 await console.log("urlWithoutHttps="+urlWithoutHttps);
-//                 const fileName = await urlWithoutHttps.substring(urlWithoutHttps.lastIndexOf('/') + 1);
-//                 //await console.log("fileName="+fileName);
-//                 const folderName = await urlWithoutHttps.substring(urlWithoutHttps.lastIndexOf('/') + 1, '\0');
-//                 //await console.log("folderName="+folderName);
-//                 //Add file in correct folder of zip
-//                 const folder = await zip.folder(folderName);
-//                 await folder.file(fileName + ".html", pageHtml);
-//                 //Mark url visited
-//                 await urlVisitedSet.add(fileName);
-//                 //Extract potential urls for next level 
-//                 const potentialUrls = await extractUrls(pageHtml);
-                
-//                 //Save urls which are not visited
-//                 if(typeof potentialUrls !== 'undefined'){
-//                     for(let k = 0; k<potentialUrls.length; k++){
-//                         if(!urlVisitedSet.has(potentialUrls[k])){
-//                              extractedUrls.add(potentialUrls[k]);
-//                         }
-//                     }
-//                 }
-//             }
-
-
-//             //Save extracted urls to array and reset the set for next level
-//             urls = await [...extractedUrls];
-//             await extractedUrls.clear();
-//             //Lower the level of deepness by one
-//             await iterations--;
-//             console.log(iterations);
-//         }
-//         //Generate zip file
-//         const content = await zip.generateAsync({ type: "nodebuffer" });
-
-//         const end = await Date.now();
-        
-//         await console.log("Process finished!");
-//         await console.log("Process took "+((end-start)/1000)+" seconds");
-//         return content;
-//     } catch (e) {
-//         console.log(e);
-//         console.log("Process failed!");
-//         return "Error";
-//     }
-
-// }
-
-// function removeHttp(url) {
-//     const withoutHttp = url.replace(/^https?:\/\//, '');
-//     return withoutHttp;
-// }
-
-// async function pageDownload(link) {
-//     try {
-//         const response = await axios.get(link);
-//         if (response.status !== 200) {
-//             console.log('Looks like there was a problem. Status Code: ' + response.status);
-//         }
-//         const pageHtml = await response.data;
-//         return pageHtml;
-//     } catch (e) {
-//         console.log(e);
-//         return "Error";
-//     }
-
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// async function doUrl(urlVisitedSet, url, zip, iterations) {
-//     if (iterations <= 0) { return; }
-//     zip.file("test.txt", "Just to see if zip works");
-//     try {
-//         console.log(url);
-//         const pageHtml = await pageDownload(url);
-
-//         const urlWithoutHttps = await removeHttp(url);
-//         await console.log("urlWithoutHttps="+urlWithoutHttps);
-//         const fileName = await urlWithoutHttps.substring(urlWithoutHttps.lastIndexOf('/') + 1);
-//         await console.log("fileName="+fileName);
-//         const folderName = await urlWithoutHttps.substring(urlWithoutHttps.lastIndexOf('/') + 1, '\0');
-//         await console.log("folderName="+folderName);
-//         const folder = await zip.folder(folderName);
-//         await folder.file(fileName + ".html", pageHtml);
-//         await urlVisitedSet.add(fileName);
-//         const potentialUrls = await extractUrls(pageHtml);
-//         await console.log(potentialUrls);
-//         // await potentialUrls.forEach(potentialUrl => {
-//         //     if (!urlVisitedSet.has(potentialUrl)) {
-//         //         (async function () {
-//         //             await doUrl(urlVisitedSet, potentialUrl, zip, iterations - 1);
-//         //         })();
-//         //     }
-//         // })
-//         const retUrls = [];
-//         for (let i = 0; i<potentialUrls.length; i++) {
-//             if (!urlVisitedSet.has(potentialUrl)) {
-//                 retUrls.push(potentialUrls[i])
-//             }
-            
-//         }
-//         return retUrls;
-
-//     } catch (e) {
-//         console.log(e);
-//     }
-
-// }
-
-
-
+  }

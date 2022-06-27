@@ -75,7 +75,7 @@ export default async function downloadWebpage(name, link, iterations, extend, ad
         })
         socket.on("image", async function (folder, fileName, extension, msg) {
             const blob = new Blob([msg]);
-            saveAs(msg, "towplane."+extension);
+            saveAs(msg, fileName+"."+extension);
             zip.folder(folder).file(fileName + "."+extension, msg, {binary: true});
             //oder zip.folder(folder).file(fileName + ".jpg", blob);
         })
