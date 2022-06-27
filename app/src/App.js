@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { Container, Row, Col, Alert, Form, Button } from 'react-bootstrap'
+import { Container, Row, Col, Form, Button } from 'react-bootstrap'
 import downloadWebpage from './logic.js'
 import {
   Chart as ChartJS,
@@ -156,7 +156,7 @@ function App() {
         </Row>
         <Row className="mt-4 mb-5">
           <Col>
-            <Chart id="chart" chartData={status} style={{backgroundColor: "white"}}></Chart>
+            <Chart id="chart" chartData={status}></Chart>
           </Col>
         </Row>
       </Container>

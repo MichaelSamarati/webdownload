@@ -13,7 +13,7 @@ export default function Chart({chartData}) {
     },
   }
   return (
-    <Bar 
+    <Bar style={{backgroundColor: "white"}}
         data={chartData} 
         options={chartOptions}
     />

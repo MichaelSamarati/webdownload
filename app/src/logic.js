@@ -151,17 +151,12 @@ export default async function downloadWebpage(status, setStatus, name, link, ite
             var obj = {...prev};
                 console.log(obj);
                 obj.labels = labels;
-                console.log(obj.datasets[0].data)
-                console.log(data)
-                obj.datasets[0].data = data;
+                console.log(obj.datasets[0])
+
+                obj.datasets[0].data = [10, 20, 2, 1];
+                console.log(obj.datasets[0])
+
                 return obj
-            // labels, 
-            // datasets: [
-            // {
-            //     label: "dada",
-            //     data: data
-            // }
-            // ],
         })
 
         //Initiate website download
