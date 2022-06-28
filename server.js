@@ -1,20 +1,16 @@
-//TODO 
+ 
 //comment everything at end
-//statistics with iteration status and file count chart js;; 
-//wenn im head stehen dann immer downloaden wenn im body dann evtl
-//man muss noch zum array adden aber am besten mergen zwei for loops
-//möglochkeoit plain download oder url exchange
+
 // Try catch nur wenn erflorrieh. Runterg3ldam dann link taduchen
 //onclikc da ist navigate function;; 
 //remove hashes 
 //maybe eigene ordner
 //Nur wenn HTML in extracted set und rletive Pfade leiht problrm
 //Dneke doch alle URLs relativ emachen nicht nur http
-//only http links exchangen mit set machen denke; ;
 //schauen das nicht css und s omehrmals runtergeladen werden
 //disabled machen
+ 
 
-//parameter liste textdatei 
 
 
 // bem letgztenn ichtm ehr ausstaischen iteration;; 
@@ -38,6 +34,7 @@ io.on("connection", socket => {
     socket.on("disconnect", function () {
 
     })
+    
 
     socket.on("webdownload", async ({ link, iterations, extend, adjustPage }) => {
         console.log("webdownload intitiated...")
@@ -151,17 +148,30 @@ io.on("connection", socket => {
                 //Lower the level of deepness by one
                 currentIteration++;
             }
-            socket.emit("end", "Every demanded file was send!");
-            const end = Date.now();
-
-            console.log("Process finished!");
-            console.log("Process took " + ((end - start) / 1000) + " seconds");
+            function finish(){
+                socket.emit("end", "Process got canceled!");
+                socket.disconnect();
+                const end = Date.now();
+    
+                console.log("Process finished!");
+                console.log("Process took " + ((end - start) / 1000) + " seconds");
+            }
+            finish();
         } catch (e) {
             console.log(e);
             console.log("Process failed!");
             console.log("error", "An error occured on the server!")
         }
+        function finish(){
+            socket.emit("end", "Every demanded file was send!");
+            const end = Date.now();
 
+            console.log("Process finished!");
+            console.log("Process took " + ((end - start) / 1000) + " seconds");
+        }
+        socket.on("cancel", function (){
+            finish();
+        })
         /**
          * 
         <div>((.|\n)*?)<\/div>

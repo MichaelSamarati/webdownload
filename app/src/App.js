@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from 'react'
+import React, {useState, useEffect, useRef} from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { Container, Row, Col, Form, Button } from 'react-bootstrap'
 import downloadWebpage from './logic.js'
@@ -23,7 +23,8 @@ ChartJS.register(
 );
 
 function App() {
-  const [isDownload, setDownload] = useState(false);
+  const isDownload = useRef(false);
+  //const [isDownload, setDownload] = useState(false);
   const [inputs, setInputs] = useState({name: "Example", link: "https://example.com", iterations: 2, extend: "Limitless", adjustPage: true, login: false});
   const [status, setStatus] = useState([]);
   const [totalStatus, setTotalStatus] = useState(0);
@@ -37,12 +38,12 @@ function App() {
   });
   const chartOptions = {
     responsive: true,
-    plugins: {
-      title: {
-        display: true,
-        text: 'Download Statistics',
-      },
-    },
+    // plugins: {
+    //   title: {
+    //     display: true,
+    //     text: 'Download Statistics',
+    //   },
+    // },
   }
   function generateChartData(iterations){
     setTotalStatus(0)
@@ -113,16 +114,17 @@ function App() {
     setInputs(inputs => ({ ...inputs, password: e.target.value }));
   }
   const cancelDownload = (e) => {
-    setDownload(false)
+    isDownload.current = false;
+    console.log(isDownload.current)
   }
   const handleSubmit = (e) => {
     e.preventDefault()
-    setDownload(true)
+   
     console.log(inputs)
     generateChartData(inputs.iterations);
-    
+    isDownload.current = true;
+    console.log(isDownload.current)
     downloadWebpage(isDownload, incrementFileCount, inputs.name, inputs.link, inputs.iterations, inputs.extend, inputs.adjustPage)
-    setDownload(false)
   }
   return (
       <Container>
@@ -146,72 +148,70 @@ function App() {
                 <Col sm={12} md={9} lg={9}>
                 <Form.Group controlId="name" className="mb-2">
                   <Form.Label>Filename</Form.Label>
-                  <Form.Control size="sm" onChange={updateName} placeholder="Example" type="text" disabled={isDownload}></Form.Control>
+                  <Form.Control size="sm" onChange={updateName} placeholder="Example" type="text"></Form.Control>
                 </Form.Group>
                 </Col>
                 <Col sm={12} md={3} lg={3}>
                 <Form.Group controlId="iterations" className="mb-2">
                   <Form.Label>Iterations</Form.Label>
-                  <Form.Control size="sm" onChange={updateIterations} defaultValue="3" min="1" type="number" disabled={isDownload}></Form.Control>
+                  <Form.Control size="sm" onChange={updateIterations} defaultValue="3" min="1" type="number"></Form.Control>
                 </Form.Group>
                 </Col>
               </Row>
               <Row className="mt-2">
                 <Col sm={12} md={4} lg={4}>
                 <Form.Group controlId="extend1" className="mb-2">
-                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Limitless" value="Limitless" checked={inputs.extend==="Limitless"} disabled={isDownload}></Form.Check>
+                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Limitless" value="Limitless" checked={inputs.extend==="Limitless"}></Form.Check>
                 </Form.Group>
                 </Col>
                 <Col sm={12} md={4} lg={4}>
                 <Form.Group controlId="extend2" className="mb-2">
-                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Stay On Root" value="Stay On Root" checked={inputs.extend==="Stay On Root"} disabled={isDownload}></Form.Check>
+                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Stay On Root" value="Stay On Root" checked={inputs.extend==="Stay On Root"} ></Form.Check>
                 </Form.Group>
                 </Col>
                 <Col sm={12} md={4} lg={4}>
                 <Form.Group controlId="extend3" className="mb-2">
-                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Stay On Path" value="Stay On Path" checked={inputs.extend==="Stay On Path"} disabled={isDownload}></Form.Check>
+                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Stay On Path" value="Stay On Path" checked={inputs.extend==="Stay On Path"} ></Form.Check>
                 </Form.Group>
                 </Col>
 
               </Row>
               <Row className="mt-2">
               <Form.Group controlId="adjustpage" className="mb-2">
-                <Form.Check size="sm" onChange={updateAdjustPage} type="switch" label="Link Files" checked={inputs.adjustPage} disabled={isDownload}></Form.Check>
+                <Form.Check size="sm" onChange={updateAdjustPage} type="switch" label="Link Files" checked={inputs.adjustPage} ></Form.Check>
               </Form.Group>
               </Row>
               <Row className="mt-2">
               <Form.Group controlId="login" className="mb-2">
-                <Form.Check size="sm" onChange={updateLogin} type="switch" label="Login" checked={inputs.login} disabled={isDownload}></Form.Check>
+                <Form.Check size="sm" onChange={updateLogin} type="switch" label="Login" checked={inputs.login} ></Form.Check>
               </Form.Group>
               </Row>
               <Row>
                 <Col sm={12} md={6} lg={6}>
                 <Form.Group controlId="username" className="mb-2">
                   <Form.Label>Username</Form.Label>
-                  <Form.Control size="sm" onChange={updateUsername} placeholder="" type="text" disabled={!inputs.login || isDownload}></Form.Control>
+                  <Form.Control size="sm" onChange={updateUsername} placeholder="" type="text" disabled={!inputs.login}></Form.Control>
                 </Form.Group>
                 </Col>
                 <Col sm={12} md={6} lg={6}>
                 <Form.Group controlId="password" className="mb-2">
                   <Form.Label>Password</Form.Label>
-                  <Form.Control size="sm" onChange={updatePassword} placeholder="" type="text" disabled={!inputs.login || isDownload}></Form.Control>
+                  <Form.Control size="sm" onChange={updatePassword} placeholder="" type="text" disabled={!inputs.login}></Form.Control>
                 </Form.Group>
                 </Col>
               </Row>
             </Form>
             <Row className="mt-3 mb-1 text-center">
               <Col>
-                <Button className="fs-5" type="submit" onClick={handleSubmit} disabled={isDownload}>Download Webpage</Button>
-              </Col>
-              <Col>
-                <Button className="fs-5" variant="secondary" disabled={!isDownload} onClick={cancelDownload}>Cancel</Button>
+              {!isDownload.current && <Button className="fs-5" type="submit" onClick={handleSubmit}>Download Webpage</Button>}
+              {isDownload.current && <Button className="fs-5" variant="secondary" onClick={cancelDownload}>Cancel Download</Button>}
               </Col>
             </Row>
           </Col>
         </Row>
         <Row className="mt-2 mb-2 text-center">
           <Col>
-            <h3>TotalCount: {totalStatus}</h3>
+            <h3>Total: {totalStatus}</h3>
           </Col>
         </Row>
         <Row className="mb-5 justify-content-md-center">
