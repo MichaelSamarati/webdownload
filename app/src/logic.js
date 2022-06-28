@@ -66,7 +66,6 @@ export default async function downloadWebpage(isDownload, incrementFileCount, na
         }
         let intervalCheck;
         function checkForCancel(){
-            console.log(isDownload.current)
                 if(!isDownload.current){
                     clearInterval(intervalCheck);
                     socket.emit("cancel", "Cancel process!")

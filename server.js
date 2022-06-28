@@ -10,6 +10,10 @@
 //schauen das nicht css und s omehrmals runtergeladen werden
 // bem letgztenn ichtm ehr ausstaischen iteration;; 
 // fix cancel
+//requestparaemter evtl noch in namen
+// hashes weg und dann am ende wieder hin denke
+// action= tags auch parsen
+// onclick='navigate()'
 
 
 // var cors = require('cors');
@@ -17,6 +21,7 @@
 // var extractUrls = require('extract-urls');
 // var Url = require('url');
 // var Path = require('path');
+var superagent = require('superagent').agent();
 var axios = require('axios');
 const regexForUrlParsing = new RegExp(/((href|src)="((.|\n)*?)")/g);
 var httpServer = require("http").createServer();
@@ -99,32 +104,33 @@ io.on("connection", socket => {
                                 //console.log(extractedUrl+" "+nowFolderName+" "+nowFileName)
                                 if (nowExtension === "html") {
                                     if (adjustPage) {
+                                        if(currentIteration<=iterations){
                                             try {
-                                            
-                                            const oldPhrase = potentialUrls[k].split("=")[1];
-                                            pageContent = replaceString(pageContent, oldPhrase, "\"" + getRelativePath(currentUrl, fullUrl) + "." + nowExtension + "\"");
-                                            console.log(fullUrl)
-                                            
-                                            // var urlsToExchangeInPageArray = [...urlsToExchangeInPage];
-                                            // for(let j = 0; j<urlsToExchangeInPageArray.length; j++){
-                                            //     //const attirbuteUrl = urlsToExchangeInPageArray[j].attribute;
-                                            //     // const oldPhrase = potentialUrls[k].split("=")[1];
-                                            //     // pageContent = replaceString(pageContent, oldPhrase, "\"" + getRelativePath(currentUrl, fullUrl) + "." + nowExtension + "\"");
-                                            //     // extractedUrls.add(fullUrl);
-                                            //     const oldPhrase = urlsToExchangeInPageArray[j].attribute.split("=")[1];
-                                            //     pageContent = replaceString(pageContent, oldPhrase, "\"" + getRelativePath(currentUrl, urlsToExchangeInPageArray[j].url) + "." + nowExtension + "\"");
-                                            //     extractedUrls.add(urlsToExchangeInPageArray[j].url);
-                                            // }
-                                        } catch (e) {
-                                            console.log(nowExtension)
+                                                
+                                                const oldPhrase = potentialUrls[k].split("=")[1];
+                                                pageContent = replaceString(pageContent, oldPhrase, "\"" + getRelativePath(currentUrl, fullUrl) + "." + nowExtension + "\"");
+                                                
+                                                // var urlsToExchangeInPageArray = [...urlsToExchangeInPage];
+                                                // for(let j = 0; j<urlsToExchangeInPageArray.length; j++){
+                                                //     //const attirbuteUrl = urlsToExchangeInPageArray[j].attribute;
+                                                //     // const oldPhrase = potentialUrls[k].split("=")[1];
+                                                //     // pageContent = replaceString(pageContent, oldPhrase, "\"" + getRelativePath(currentUrl, fullUrl) + "." + nowExtension + "\"");
+                                                //     // extractedUrls.add(fullUrl);
+                                                //     const oldPhrase = urlsToExchangeInPageArray[j].attribute.split("=")[1];
+                                                //     pageContent = replaceString(pageContent, oldPhrase, "\"" + getRelativePath(currentUrl, urlsToExchangeInPageArray[j].url) + "." + nowExtension + "\"");
+                                                //     extractedUrls.add(urlsToExchangeInPageArray[j].url);
+                                                // }
+                                            } catch (e) {
+                                                
+                                            }
+                                        
                                         }
-                                        
-                                        
                                     }
                                 } else {
-                                    //console.log(nowExtension)
                                     try {
                                         const nowPageContent = await pageDownloadWithErrorThrow(fullUrl);
+                                        const oldPhrase = potentialUrls[k].split("=")[1];
+                                        pageContent = replaceString(pageContent, oldPhrase, "\"" + getRelativePath(currentUrl, fullUrl) + "." + nowExtension + "\"");
                                         sendFile(nowFolderName, nowFileName, nowExtension, nowPageContent);
                                         visitedUrlSet.add(fullUrl);
                                     } catch (e) {
@@ -146,14 +152,6 @@ io.on("connection", socket => {
                 //Lower the level of deepness by one
                 currentIteration++;
             }
-            // function finish(){
-            //     socket.emit("end", "Process got cancelled!");
-            //     socket.disconnect();
-            //     const end = Date.now();
-    
-            //     console.log("Process finished!");
-            //     console.log("Process took " + ((end - start) / 1000) + " seconds");
-            // }
             function finish(){
                 currentIteration = iterations;
                 socket.emit("end", "Process got cancelled!");
@@ -165,7 +163,6 @@ io.on("connection", socket => {
             }
         
             socket.on("cancel", function (){
-                console.log("Herere  aw daw da dddddddddddddddddddwwwwwwww")
                 finish();
             })
             finish();
@@ -225,7 +222,7 @@ function removeUrlParameters(url) {
 }
 
 function extractFileName(url) {
-    const slashCount = getSlashCount(url) - 1;
+    const slashCount = getSlashCount(url);
     if (slashCount === 0) { return url; }
     const lastPart = url.substring(url.lastIndexOf('/') + 1);
     const pointSeperation = lastPart.split(".");
@@ -233,6 +230,13 @@ function extractFileName(url) {
 }
 
 function extractFolderName(url) {
+    // let res;
+    // if(url.indexOf("/")===-1){
+    //     res = url+"/";
+    // }else{
+    //     res = url.substring(url.lastIndexOf('/') + 1, '\0')
+    // }
+    // return res;
     return url.substring(url.lastIndexOf('/') + 1, '\0');
 }
 
@@ -297,11 +301,13 @@ function getRelativePath(start, end) {
     start = removeHttp(start);
     end = removeHttp(end);
     const count = getSlashCount(start) - 1;
-    //const res = "../".repeat(count)+extractFolderName(end)+extractFileName(end);
+    
     const folderName = extractFolderName(end);
     const fileName = extractFileName(end);
     //if(getSlashCount(folderName)===0){folderName = removeLastSlashIfThere(folderName);}
-    const res = folderName + fileName;
+    const res = "../".repeat(count)+folderName+fileName;
+    
+    //const res = folderName + fileName;
     //res = removeLastSlashIfThere(res);
     return res;
 }
