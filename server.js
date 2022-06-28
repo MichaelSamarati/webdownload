@@ -8,12 +8,10 @@
 //Nur wenn HTML in extracted set und rletive Pfade leiht problrm
 //Dneke doch alle URLs relativ emachen nicht nur http
 //schauen das nicht css und s omehrmals runtergeladen werden
-//disabled machen
- 
-
-
-
 // bem letgztenn ichtm ehr ausstaischen iteration;; 
+// fix cancel
+
+
 // var cors = require('cors');
 // var fs = require('fs');
 // var extractUrls = require('extract-urls');
@@ -31,16 +29,16 @@ var io = require('socket.io')(httpServer, {
 io.listen((process.env.PORT || 5000));
 
 io.on("connection", socket => {
+    var start;
     socket.on("disconnect", function () {
 
     })
-    
 
     socket.on("webdownload", async ({ link, iterations, extend, adjustPage }) => {
         console.log("webdownload intitiated...")
         try {
             //Save start time
-            const start = Date.now();
+            start = Date.now();
             var currentIteration = 1;
             
             //Remove last slash if there
@@ -148,30 +146,35 @@ io.on("connection", socket => {
                 //Lower the level of deepness by one
                 currentIteration++;
             }
+            // function finish(){
+            //     socket.emit("end", "Process got cancelled!");
+            //     socket.disconnect();
+            //     const end = Date.now();
+    
+            //     console.log("Process finished!");
+            //     console.log("Process took " + ((end - start) / 1000) + " seconds");
+            // }
             function finish(){
-                socket.emit("end", "Process got canceled!");
+                currentIteration = iterations;
+                socket.emit("end", "Process got cancelled!");
                 socket.disconnect();
                 const end = Date.now();
-    
+        
                 console.log("Process finished!");
                 console.log("Process took " + ((end - start) / 1000) + " seconds");
             }
+        
+            socket.on("cancel", function (){
+                console.log("Herere  aw daw da dddddddddddddddddddwwwwwwww")
+                finish();
+            })
             finish();
         } catch (e) {
             console.log(e);
             console.log("Process failed!");
             console.log("error", "An error occured on the server!")
         }
-        function finish(){
-            socket.emit("end", "Every demanded file was send!");
-            const end = Date.now();
-
-            console.log("Process finished!");
-            console.log("Process took " + ((end - start) / 1000) + " seconds");
-        }
-        socket.on("cancel", function (){
-            finish();
-        })
+        
         /**
          * 
         <div>((.|\n)*?)<\/div>
@@ -196,16 +199,9 @@ io.on("connection", socket => {
                             }
                             await urlStuff();
          */
-        //socket.emit("text", "Path", "Test")
-
-        // fs.readFile('ms.png', function(err, data){
-        //   socket.emit('png', "data:image/png;base64,"+ data.toString("base64"));
-        // });        
-        // fs.readFile('towplane.jpg', function(err, data){
-        //   socket.emit('jpg', "data:image/jpg;base64,"+ data.toString("base64"));
-        // });
 
     });
+    
     function sendFile(folderName, fileName, extension, pageContent) {
         if (extension === "html" || extension === "css" || extension === "txt" || extension === "pdf") {
             socket.emit("text", folderName, fileName, extension, pageContent)

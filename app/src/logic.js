@@ -69,6 +69,7 @@ export default async function downloadWebpage(isDownload, incrementFileCount, na
             console.log(isDownload.current)
                 if(!isDownload.current){
                     clearInterval(intervalCheck);
+                    socket.emit("cancel", "Cancel process!")
                     finish();
                 }
         }

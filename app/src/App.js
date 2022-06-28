@@ -217,6 +217,7 @@ function App() {
         <Row className="mb-5 justify-content-md-center">
           <Col sm={12} md={10} lg={10} >
           <Bar 
+            className="rounded border border"
             style={{backgroundColor: "white"}}
             data={chart} 
             options={chartOptions}
