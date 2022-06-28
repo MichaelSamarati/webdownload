@@ -141,23 +141,7 @@ export default async function downloadWebpage(status, setStatus, name, link, ite
         socket.on("error", async function (error) {
             console.log(error)
         })
-        var labels = [];
-        var data = [];
-        for(let i = 1; i<=iterations; i++){
-            labels.push(i);
-            data.push(0);
-        }
-        setStatus(prev => {
-            var obj = {...prev};
-                console.log(obj);
-                obj.labels = labels;
-                console.log(obj.datasets[0])
-
-                obj.datasets[0].data = [10, 20, 2, 1];
-                console.log(obj.datasets[0])
-
-                return obj
-        })
+        
 
         //Initiate website download
         socket.emit("webdownload", {link: link, iterations: iterations, extend: extend, adjustPage: adjustPage});

@@ -22,13 +22,18 @@ The application does only provide a static version of a website. It is not able 
   - extract-urls
   - ...
 
-## Deploy
-heroku login
-heroku git:remote -a "web-down-load"     
-git subtree push --prefix app heroku main
-git push heroku master
-heroku open
-heroku restart
+## Deployment
+
+Website is on https://web-down-load.herokuapp.com/ deployed.
+Commands:
+  - heroku login
+  - heroku git:remote -a "web-down-load"     
+  - git subtree push --prefix app heroku main
+  - git push heroku master
+  - heroku open
+  
+
+
 
 
 

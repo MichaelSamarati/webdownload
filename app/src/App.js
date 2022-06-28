@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useMemo} from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { Container, Row, Col, Form, Button } from 'react-bootstrap'
 import downloadWebpage from './logic.js'
@@ -25,17 +25,53 @@ ChartJS.register(
 function App() {
   const [isDownload, setDownload] = useState(false);
   const [inputs, setInputs] = useState({name: "Example", link: "https://example.com", iterations: 2, extend: "Limitless", adjustPage: true, login: false});
-  const [status, setStatus] = useState({
-    labels: [5,6,7,8],
-    datasets: [{
-      label: "Downloaded Files At Iteration",
-      data: [1,3,7,20],
-      backgroundColor: "#0275d8" 
-    }]
-  });
-  // useEffect(() => {
-  //   chart.update
-  // }, status)
+  const [status, setStatus] = useState([]);
+  const [chart, setChart] = useState(
+    {
+      labels: [],
+  datasets: [{
+    label: "Downloaded Files At Iteration",
+    data: [],
+    backgroundColor: "#0275d8" 
+  }]
+});
+  function generateChartData(iterations){
+    setStatus(prev => {
+      let data = [];
+      for (let i = 0; i < iterations; i++) {
+        let obj = {
+          iteration: i+1,
+          count: 2
+        }
+        data.push(obj);
+      }
+      console.log(data)
+      return data;
+    })
+  }
+  function updateChart(){
+    setChart(prev => {
+      console.log("status")
+      console.log(status)
+      let chartData = {
+      labels: status?.map(level => {return level.iteration;}),
+      datasets: [{
+        label: "Downloaded Files At Iteration",
+        data: status?.map(level => {return level.count;}),
+        backgroundColor: "#0275d8" 
+      }]
+      }
+      console.log(chartData)
+      return chartData
+    });
+  }
+
+  useEffect(() => {
+    generateChartData(inputs.iterations)
+  }, [inputs.iterations])
+  useEffect(() => {
+    updateChart()
+  }, [status])
   const updateName = (e) => {
     setInputs(inputs => ({ ...inputs, name: e.target.value }));
   }
@@ -43,7 +79,30 @@ function App() {
     setInputs(inputs => ({ ...inputs, link: e.target.value }));
   }
   const updateIterations = (e) => {
-    setInputs(inputs => ({ ...inputs, iterations: e.target.value }));
+    const iterations = e.target.value;
+    setInputs(inputs => ({ ...inputs, iterations: iterations }));
+    // var labels = [];
+    // var data = [];
+    // for (let i = 1; i <= iterations; i++) {
+    //   labels.push(i);
+    //   data.push(0);
+    // }
+    // setStatus(prev => {
+    //   let datacopy = Object.assign({}, prev)
+    //   // //var obj = { ...prev };
+    //   // console.log(datacopy);
+    //   // datacopy.labels = labels;
+    //   // //console.log(datacopy.datasets[0])
+
+    //   // datacopy.datasets[0].data = data;
+    //   // //console.log(obj.datasets[0])
+    //   // console.log(datacopy);
+    //   // return datacopy
+    //   let dataset = datacopy.datasets[0];
+    //   dataset = {...dataset, data: data}
+    //   //return {labels: labels, datasets: [{label: "2wadawd", data: data}]}
+    //   return {labels: labels, datasets: [...datacopy.datasets, dataset]}
+    // })
   }
   const updateExtend = (e) => {
     setInputs(inputs => ({ ...inputs, extend: e.target.value}));
@@ -156,7 +215,7 @@ function App() {
         </Row>
         <Row className="mt-4 mb-5">
           <Col>
-            <Chart id="chart" chartData={status}></Chart>
+            <Chart id="chart" chartData={chart}></Chart>
           </Col>
         </Row>
       </Container>
