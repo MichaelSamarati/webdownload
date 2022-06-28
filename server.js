@@ -12,6 +12,11 @@
 //Dneke doch alle URLs relativ emachen nicht nur http
 //only http links exchangen mit set machen denke; ;
 //schauen das nicht css und s omehrmals runtergeladen werden
+//disabled machen
+
+//parameter liste textdatei 
+
+
 // bem letgztenn ichtm ehr ausstaischen iteration;; 
 // var cors = require('cors');
 // var fs = require('fs');

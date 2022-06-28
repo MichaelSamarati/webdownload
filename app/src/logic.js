@@ -56,7 +56,7 @@ function b64(e){var t="";var n=new Uint8Array(e);var r=n.byteLength;for(var i=0;
 */
 
 
-export default async function downloadWebpage(status, setStatus, name, link, iterations, extend, adjustPage) {
+export default async function downloadWebpage(incrementFileCount, name, link, iterations, extend, adjustPage) {
     console.log("Process started!")
     try {
         //Save start time
@@ -64,7 +64,6 @@ export default async function downloadWebpage(status, setStatus, name, link, ite
 
         const socket = io("http://localhost:5000");
         var currentIteration;
-//parameter liste textdatei 
         socket.on('connect', () => {
             //console.log("Connected with server!");
         })
@@ -72,13 +71,13 @@ export default async function downloadWebpage(status, setStatus, name, link, ite
             //console.log("Disconnected!");
         })
         socket.on("text", async function (folder, fileName, extension, msg) {
-            incrementFileCount();
+            incrementFileCount(currentIteration);
             //const blob = new Blob([msg], { type: "text/plain" });
             zip.folder(folder).file(fileName + "."+extension, msg);
             //saveAs(blob, fileName + "."+extension)
         })
         socket.on("image", async function (folder, fileName, extension, msg) {
-            incrementFileCount();
+            incrementFileCount(currentIteration);
             //const blob = new Blob([msg]);
             //saveAs(msg, fileName+"."+extension);
             zip.folder(folder).file(fileName + "."+extension, msg, {binary: true});
@@ -86,21 +85,7 @@ export default async function downloadWebpage(status, setStatus, name, link, ite
         })
         socket.on("status", async function (iteration) {
             currentIteration = iteration;
-            console.log(currentIteration)
         })
-        // socket.on("jpg", async function (folder, fileName, msg) {
-        //     const blob = new Blob([msg]);
-        //     zip.folder(folder).file(fileName + ".jpg", msg, {binary: true});
-        //     //oder zip.folder(folder).file(fileName + ".jpg", blob);
-        //     saveAs(msg, "towplane.jpg");
-
-        // })
-        // socket.on("png", async function (folder, fileName, msg) {
-        //     const blob = new Blob([msg]);
-        //     zip.folder(folder).file(fileName + ".png", msg, {binary: true});
-        //     //oder zip.folder(folder).file(fileName + ".png", blob);
-        //     saveAs(msg, "ms.png");
-        // })
 
         socket.on("end", async function (msg) {
             //Generate zip file
@@ -113,31 +98,6 @@ export default async function downloadWebpage(status, setStatus, name, link, ite
             await console.log("Process took "+((end-start)/1000)+" seconds");
             socket.disconnect();
         })
-        function incrementFileCount(){
-            // setStatus(prev => {
-            //     const obj = {...prev};
-            //     console.log(obj)
-            //     obj.datasets[0].data[currentIteration+1] = obj.datasets[0].data[currentIteration-1]+1;
-            // })
-        }
-        // socket.on("text", async function (folder, filename, msg) {
-        //     const blob = new Blob([msg], { type: "text/plain" });
-        //     console.log(blob.size + "  text")
-        //     saveAs(blob, "new.txt");
-
-        // })
-        // socket.on("jpg", async function (folder, filename, msg) {
-        //     const blob = new Blob([msg]);
-        //     console.log(blob.size + "  jpg")
-        //     saveAs(msg, "towplane.jpg");
-
-        // })
-        // socket.on("png", async function (folder, filename, msg) {
-        //     const blob = new Blob([msg]);
-        //     console.log(blob.size + "  png")
-        //     saveAs(msg, "ms.png");
-
-        // })
         socket.on("error", async function (error) {
             console.log(error)
         })
@@ -147,8 +107,6 @@ export default async function downloadWebpage(status, setStatus, name, link, ite
         socket.emit("webdownload", {link: link, iterations: iterations, extend: extend, adjustPage: adjustPage});
         //Initilize zip file
         const zip = new JSZip();
-        ////Test
-        //zip.file("test.txt", "Just to see if zip works");
         
     } catch (e) {
         console.log(e)

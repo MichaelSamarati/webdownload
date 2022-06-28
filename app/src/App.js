@@ -11,7 +11,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import Chart from './Chart.js';
+import {Bar} from 'react-chartjs-2';
 
 ChartJS.register(
   CategoryScale,
@@ -26,44 +26,60 @@ function App() {
   const [isDownload, setDownload] = useState(false);
   const [inputs, setInputs] = useState({name: "Example", link: "https://example.com", iterations: 2, extend: "Limitless", adjustPage: true, login: false});
   const [status, setStatus] = useState([]);
-  const [chart, setChart] = useState(
-    {
-      labels: [],
-  datasets: [{
-    label: "Downloaded Files At Iteration",
-    data: [],
-    backgroundColor: "#0275d8" 
-  }]
-});
+  const [totalStatus, setTotalStatus] = useState(0);
+  const [chart, setChart] = useState({
+    labels: [],
+    datasets: [{
+      label: "Downloaded Files At Iteration",
+      data: [],
+      backgroundColor: "#0275d8" 
+    }]
+  });
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Download Statistics',
+      },
+    },
+  }
   function generateChartData(iterations){
+    setTotalStatus(0)
     setStatus(prev => {
       let data = [];
-      for (let i = 0; i < iterations; i++) {
+      for (let i = 1; i <= iterations; i++) {
         let obj = {
-          iteration: i+1,
-          count: 2
+          iteration: i,
+          count: 0
         }
         data.push(obj);
       }
-      console.log(data)
       return data;
     })
   }
   function updateChart(){
     setChart(prev => {
-      console.log("status")
-      console.log(status)
       let chartData = {
-      labels: status?.map(level => {return level.iteration;}),
+      labels: status.map(level => level.iteration),
       datasets: [{
         label: "Downloaded Files At Iteration",
-        data: status?.map(level => {return level.count;}),
+        data: status.map(level => level.count),
         backgroundColor: "#0275d8" 
       }]
       }
-      console.log(chartData)
       return chartData
     });
+  }
+  function incrementFileCount(currentIteration){
+    setTotalStatus(prev => prev+1);
+    setStatus(prev => {
+      return [
+        ...prev.slice(0, currentIteration-1),
+        {iteration: currentIteration, count: prev.at(currentIteration-1).count+1},
+        ...prev.slice(currentIteration),
+      ]
+    })
   }
 
   useEffect(() => {
@@ -79,30 +95,7 @@ function App() {
     setInputs(inputs => ({ ...inputs, link: e.target.value }));
   }
   const updateIterations = (e) => {
-    const iterations = e.target.value;
-    setInputs(inputs => ({ ...inputs, iterations: iterations }));
-    // var labels = [];
-    // var data = [];
-    // for (let i = 1; i <= iterations; i++) {
-    //   labels.push(i);
-    //   data.push(0);
-    // }
-    // setStatus(prev => {
-    //   let datacopy = Object.assign({}, prev)
-    //   // //var obj = { ...prev };
-    //   // console.log(datacopy);
-    //   // datacopy.labels = labels;
-    //   // //console.log(datacopy.datasets[0])
-
-    //   // datacopy.datasets[0].data = data;
-    //   // //console.log(obj.datasets[0])
-    //   // console.log(datacopy);
-    //   // return datacopy
-    //   let dataset = datacopy.datasets[0];
-    //   dataset = {...dataset, data: data}
-    //   //return {labels: labels, datasets: [{label: "2wadawd", data: data}]}
-    //   return {labels: labels, datasets: [...datacopy.datasets, dataset]}
-    // })
+    setInputs(inputs => ({ ...inputs, iterations: e.target.value }));
   }
   const updateExtend = (e) => {
     setInputs(inputs => ({ ...inputs, extend: e.target.value}));
@@ -126,7 +119,10 @@ function App() {
     e.preventDefault()
     setDownload(true)
     console.log(inputs)
-    downloadWebpage(status, setStatus, inputs.name, inputs.link, inputs.iterations, inputs.extend, inputs.adjustPage)
+    generateChartData(inputs.iterations);
+    
+    downloadWebpage(isDownload, incrementFileCount, inputs.name, inputs.link, inputs.iterations, inputs.extend, inputs.adjustPage)
+    setDownload(false)
   }
   return (
       <Container>
@@ -150,62 +146,62 @@ function App() {
                 <Col sm={12} md={9} lg={9}>
                 <Form.Group controlId="name" className="mb-2">
                   <Form.Label>Filename</Form.Label>
-                  <Form.Control size="sm" onChange={updateName} placeholder="Example" type="text"></Form.Control>
+                  <Form.Control size="sm" onChange={updateName} placeholder="Example" type="text" disabled={isDownload}></Form.Control>
                 </Form.Group>
                 </Col>
                 <Col sm={12} md={3} lg={3}>
                 <Form.Group controlId="iterations" className="mb-2">
                   <Form.Label>Iterations</Form.Label>
-                  <Form.Control size="sm" onChange={updateIterations} defaultValue="3" min="1" type="number"></Form.Control>
+                  <Form.Control size="sm" onChange={updateIterations} defaultValue="3" min="1" type="number" disabled={isDownload}></Form.Control>
                 </Form.Group>
                 </Col>
               </Row>
               <Row className="mt-2">
                 <Col sm={12} md={4} lg={4}>
                 <Form.Group controlId="extend1" className="mb-2">
-                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Limitless" value="Limitless" checked={inputs.extend==="Limitless"}></Form.Check>
+                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Limitless" value="Limitless" checked={inputs.extend==="Limitless"} disabled={isDownload}></Form.Check>
                 </Form.Group>
                 </Col>
                 <Col sm={12} md={4} lg={4}>
                 <Form.Group controlId="extend2" className="mb-2">
-                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Stay On Root" value="Stay On Root" checked={inputs.extend==="Stay On Root"}></Form.Check>
+                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Stay On Root" value="Stay On Root" checked={inputs.extend==="Stay On Root"} disabled={isDownload}></Form.Check>
                 </Form.Group>
                 </Col>
                 <Col sm={12} md={4} lg={4}>
                 <Form.Group controlId="extend3" className="mb-2">
-                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Stay On Path" value="Stay On Path" checked={inputs.extend==="Stay On Path"}></Form.Check>
+                  <Form.Check size="sm" onChange={updateExtend} name="extendRadios" type="radio" label="Stay On Path" value="Stay On Path" checked={inputs.extend==="Stay On Path"} disabled={isDownload}></Form.Check>
                 </Form.Group>
                 </Col>
 
               </Row>
               <Row className="mt-2">
               <Form.Group controlId="adjustpage" className="mb-2">
-                <Form.Check size="sm" onChange={updateAdjustPage} type="switch" label="Link Files" checked={inputs.adjustPage}></Form.Check>
+                <Form.Check size="sm" onChange={updateAdjustPage} type="switch" label="Link Files" checked={inputs.adjustPage} disabled={isDownload}></Form.Check>
               </Form.Group>
               </Row>
               <Row className="mt-2">
               <Form.Group controlId="login" className="mb-2">
-                <Form.Check size="sm" onChange={updateLogin} type="switch" label="Login" checked={inputs.login}></Form.Check>
+                <Form.Check size="sm" onChange={updateLogin} type="switch" label="Login" checked={inputs.login} disabled={isDownload}></Form.Check>
               </Form.Group>
               </Row>
               <Row>
                 <Col sm={12} md={6} lg={6}>
                 <Form.Group controlId="username" className="mb-2">
                   <Form.Label>Username</Form.Label>
-                  <Form.Control size="sm" onChange={updateUsername} placeholder="" type="text" disabled={!inputs.login}></Form.Control>
+                  <Form.Control size="sm" onChange={updateUsername} placeholder="" type="text" disabled={!inputs.login || isDownload}></Form.Control>
                 </Form.Group>
                 </Col>
                 <Col sm={12} md={6} lg={6}>
                 <Form.Group controlId="password" className="mb-2">
                   <Form.Label>Password</Form.Label>
-                  <Form.Control size="sm" onChange={updatePassword} placeholder="" type="text" disabled={!inputs.login}></Form.Control>
+                  <Form.Control size="sm" onChange={updatePassword} placeholder="" type="text" disabled={!inputs.login || isDownload}></Form.Control>
                 </Form.Group>
                 </Col>
               </Row>
             </Form>
-            <Row className="mt-3 text-center">
+            <Row className="mt-3 mb-1 text-center">
               <Col>
-                <Button className="fs-5" type="submit" onClick={handleSubmit}>Download Webpage</Button>
+                <Button className="fs-5" type="submit" onClick={handleSubmit} disabled={isDownload}>Download Webpage</Button>
               </Col>
               <Col>
                 <Button className="fs-5" variant="secondary" disabled={!isDownload} onClick={cancelDownload}>Cancel</Button>
@@ -213,9 +209,18 @@ function App() {
             </Row>
           </Col>
         </Row>
-        <Row className="mt-4 mb-5">
+        <Row className="mt-2 mb-2 text-center">
           <Col>
-            <Chart id="chart" chartData={chart}></Chart>
+            <h3>TotalCount: {totalStatus}</h3>
+          </Col>
+        </Row>
+        <Row className="mb-5 justify-content-md-center">
+          <Col sm={12} md={10} lg={10} >
+          <Bar 
+            style={{backgroundColor: "white"}}
+            data={chart} 
+            options={chartOptions}
+          />
           </Col>
         </Row>
       </Container>
