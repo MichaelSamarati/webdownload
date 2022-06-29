@@ -19,7 +19,6 @@ The application does only provide a static version of a website. It is not able 
 - Server
   - socket.io (Communication)
   - jszip (Zip-Management)
-  - extract-urls
   - ...
 
 ## Deployment

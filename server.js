@@ -8,10 +8,12 @@
 // hashes weg und dann am ende wieder hin denke
 // action= tags auch parsen
 // onclick='navigate()'
-
+//replacesteoin undf oldphrase auslagern nach oben
+// bei catch muss man dann halt gesamte url rein schreiben
+//if adjuust page consitent machen 
 var superagent = require('superagent').agent();
 var axios = require('axios');
-const regexForUrlParsing = new RegExp(/((href|src)="((.|\n)*?)")/g);
+const regexForUrlParsing = new RegExp(/((href|src|onclick)="((.|\n)*?)")/g);
 var httpServer = require("http").createServer();
 var io = require('socket.io')(httpServer, {
     cors: {
@@ -92,51 +94,78 @@ io.on("connection", socket => {
                             if (!visitedUrlSet.has(potentialUrls[k])) {
                                 //Extract link from 
                                 extractedUrl = potentialUrls[k].split("\"")[1]; //e.g. href="https://example.com" -> https://example.com
+                                let leftSideUrl = "\"";
+                                let middleUrl = extractedUrl;
+                                let rightSideUrl = "\"";
+                                if(extractedUrl.indexOf("'")!==-1){
+                                    let singleQuotationMarkSeperation = extractedUrl.split("'");
+                                    leftSideUrl = leftSideUrl+singleQuotationMarkSeperation[0]+"'";
+                                    middleUrl = singleQuotationMarkSeperation[1];
+                                    rightSideUrl = "'"+singleQuotationMarkSeperation[2]+rightSideUrl;
+                                }
                                 
+                                  
                                 //Check if link is uncomplete
                                 var fullUrl;
-                                if (isStartMatching(extractedUrl, "http")) {
-                                    fullUrl = extractedUrl; //e.g. https://example.com -> https://example.com
+                                if (isStartMatching(middleUrl, "http")) {
+                                    fullUrl = middleUrl; //e.g. https://example.com -> https://example.com
                                 } else {
-                                    fullUrl = pageRootWithHttp + extractedUrl; //e.g. /images/mountain.jpg -> https://example.com/images/mountain.jpg
+                                    fullUrl = pageRootWithHttp + middleUrl; //e.g. /images/mountain.jpg -> https://example.com/images/mountain.jpg
                                 }
+                                                                
+                                //Get rid of chapter stuff and last slash if there
+                                fullUrl = fullUrl.split("#")[0];
+                                fullUrl = removeLastSlashIfThere(fullUrl);
 
                                 //Remove url http/https
                                 const nowUrlWithoutHttp = removeHttp(fullUrl);
 
-                                //Check mode is "Stay On Root" or "Stay On Path", and if url without http/https does not match with root or path
-                                if (extend === "Stay On Root" && !isStartMatching(nowUrlWithoutHttp, linkRoot)) { continue; }
-                                else if (extend === "Stay On Path" && !isStartMatching(nowUrlWithoutHttp, linkPath)) { continue; }
+                                
                                 
                                 //
                                 
                                 const nowFileName = extractFileName(nowUrlWithoutHttp);
                                 const nowFolderName = extractFolderName(nowUrlWithoutHttp);
                                 const nowExtension = extractExtension(nowUrlWithoutHttp);
+                                //const oldPhrase = potentialUrls[k].split("=")[1];
+                                const oldPhrase = leftSideUrl+middleUrl+rightSideUrl
+                                //Check mode is "Stay On Root" or "Stay On Path", and if url without http/https does not match with root or path
+                                if (extend === "Stay On Root" && !isStartMatching(nowUrlWithoutHttp, linkRoot)) {
+                                    if (adjustPage) {
+                                        pageContent = replaceString(pageContent, oldPhrase, leftSideUrl + fullUrl + rightSideUrl); 
+                                    }
+                                    continue;
+                                }
+                                if (extend === "Stay On Path" && !isStartMatching(nowUrlWithoutHttp, linkPath)) {
+                                    if (adjustPage) {
+                                        pageContent = replaceString(pageContent, oldPhrase, leftSideUrl + fullUrl + rightSideUrl); 
+                                    }
+                                    continue;
+                                }
                                 if (nowExtension === "html") {
                                     //Add url for next level
                                     extractedUrls.add(fullUrl);
                                     if (adjustPage) {
-                                        const oldPhrase = potentialUrls[k].split("=")[1];
                                         if (currentIteration < iterations) {
-                                            pageContent = replaceString(pageContent, oldPhrase, "\"" + getRelativePath(currentUrl, fullUrl) + "." + nowExtension + "\"");
+                                            //console.log(leftSideUrl + getRelativePath(currentUrl, fullUrl) + "." + nowExtension + rightSideUrl)
+                                            pageContent = replaceString(pageContent, oldPhrase, leftSideUrl + getRelativePath(currentUrl, fullUrl) + "." + nowExtension + rightSideUrl);
                                         }else{
-                                            pageContent = replaceString(pageContent, oldPhrase, "\"" + fullUrl + "\"");
+                                            //console.log(leftSideUrl + getRelativePath(currentUrl, fullUrl) + "." + nowExtension + rightSideUrl)
+                                            pageContent = replaceString(pageContent, oldPhrase, leftSideUrl + fullUrl + rightSideUrl);
                                         }
                                     }
                                 } else {
-                                    //download now
                                     try {
                                         const nowPageContent = await pageDownloadWithErrorThrow(fullUrl);
-                                        const oldPhrase = potentialUrls[k].split("=")[1];
-                                        pageContent = replaceString(pageContent, oldPhrase, "\"" + getRelativePath(currentUrl, fullUrl) + "." + nowExtension + "\"");
                                         sendFile(nowFolderName, nowFileName, nowExtension, nowPageContent);
 
-                                        //Mark url as visited
-                                        visitedUrlSet.add(fullUrl);
+                                        //If file could be downloaded, link html to local file
+                                        pageContent = replaceString(pageContent, oldPhrase, leftSideUrl + getRelativePath(currentUrl, fullUrl) + "." + nowExtension + rightSideUrl);
                                     } catch (e) {
-                                        console.log("File could not be downloaded!")
-                                    }
+                                        //If file could not be downloaded, link to website link
+                                        pageContent = replaceString(pageContent, oldPhrase, leftSideUrl + fullUrl + rightSideUrl);
+                                    }//Mark url as visited
+                                    visitedUrlSet.add(fullUrl);
                                 }
                             }
                         }
@@ -200,21 +229,20 @@ function removeUrlParameters(url) {
 
 function extractFileName(url) {
     const slashCount = getSlashCount(url);
-    if (slashCount === 0) { return url; }
+    if (slashCount === 0) { return ""; }
     const lastPart = url.substring(url.lastIndexOf('/') + 1);
     const pointSeperation = lastPart.split(".");
     return pointSeperation[0];
 }
 
 function extractFolderName(url) {
-    // let res;
-    // if(url.indexOf("/")===-1){
-    //     res = url+"/";
-    // }else{
-    //     res = url.substring(url.lastIndexOf('/') + 1, '\0')
-    // }
-    // return res;
-    return url.substring(url.lastIndexOf('/') + 1, '\0');
+    const slashCount = getSlashCount(url);
+    if (slashCount === 0) { 
+        return url; 
+    }else{
+        return url.substring(url.lastIndexOf('/') + 1, '\0');
+    }
+    
 }
 
 function extractRoot(link) {
@@ -224,11 +252,6 @@ function extractRoot(link) {
 function extractRootWithHttp(link) {
     const tmp = link.split("/")
     return tmp[0] + "/" + tmp[1] + "/" + tmp[2];
-}
-
-function extractPathWithHttp(link) {
-    link = removeLastSlashIfThere(link);
-    return link + "/";
 }
 
 function extractPath(link) {
@@ -264,25 +287,27 @@ function isStartMatching(string, startString) {
 
 
 function replaceString(string, oldPhrase, newPhrase) {
-    var regex = RegExp(oldPhrase, "g");
-    return string.replaceAll(regex, newPhrase);
+    try{
+        var regex = RegExp(oldPhrase, "g");
+        return string.replaceAll(regex, newPhrase);
+    }catch(e){
+        return string;
+    }
+    
 }
 
 function getSlashCount(string) {
-    return string.split("/").length;
+    return string.split("/").length-1;
 }
 
 function getRelativePath(start, end) {
     start = removeHttp(start);
     end = removeHttp(end);
-    const count = getSlashCount(start) - 1;
-
+    var count = getSlashCount(start);
+    if(extractFileName(start).length===0){count++;}
     const folderName = extractFolderName(end);
     const fileName = extractFileName(end);
-    //if(getSlashCount(folderName)===0){folderName = removeLastSlashIfThere(folderName);}
     const res = "../".repeat(count) + folderName + fileName;
-
-    //res = removeLastSlashIfThere(res);
     return res;
 }
 

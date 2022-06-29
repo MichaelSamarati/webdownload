@@ -221,7 +221,7 @@ function App() {
       <Row className="mb-5 justify-content-md-center">
         <Col sm={12} md={10} lg={10} >
           <Bar
-            className="p-2 rounded border border"
+            className="p-1 rounded border border"
             style={{ backgroundColor: "white" }}
             data={chart}
             options={chartOptions}
