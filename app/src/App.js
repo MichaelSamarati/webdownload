@@ -62,7 +62,7 @@ function App() {
       let chartData = {
       labels: status.map(level => level.iteration),
       datasets: [{
-        label: "Unknown Downloaded Files At Iteration",
+        label: "New So Far Unknown Files At Iteration",
         data: status.map(level => level.count),
         backgroundColor: "#0275d8" 
       }]
@@ -198,7 +198,7 @@ function App() {
                 <Col sm={12} md={6} lg={6}>
                 <Form.Group controlId="username" className="mb-2">
                   <Form.Label>Username</Form.Label>
-                  <Form.Control size="sm" onChange={updateUsername} placeholder="NiceUser" type="text" disabled={!inputs.login}></Form.Control>
+                  <Form.Control size="sm" onChange={updateUsername} placeholder="NiceUsername" type="text" disabled={!inputs.login}></Form.Control>
                 </Form.Group>
                 </Col>
                 <Col sm={12} md={6} lg={6}>
@@ -209,7 +209,7 @@ function App() {
                 </Col>
               </Row>
             </Form>
-            <Row className="mt-3 mb-1 text-center">
+            <Row className="mt-3 mb-4 text-center">
               <Col>
               {!isDownload.current && <Button className="fs-5" type="submit" onClick={handleSubmit}>Download Webpage</Button>}
               {isDownload.current && <Button className="fs-5" variant="secondary" onClick={cancelDownload}>Cancel Download</Button>}
@@ -217,7 +217,7 @@ function App() {
             </Row>
           </Col>
         </Row>
-        <Row className="mt-2 mb-2 text-center">
+        <Row className="text-center">
           <Col>
             <h3>Total: {totalStatus}</h3>
           </Col>

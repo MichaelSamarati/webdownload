@@ -2,13 +2,7 @@
 //comment everything at end
 
 // Try catch nur wenn erflorrieh. Runterg3ldam dann link taduchen
-//onclikc da ist navigate function;; 
 //remove hashes 
-//maybe eigene ordner
-//Nur wenn HTML in extracted set und rletive Pfade leiht problrm
-//Dneke doch alle URLs relativ emachen nicht nur http
-//schauen das nicht css und s omehrmals runtergeladen werden
-// bem letgztenn ichtm ehr ausstaischen iteration;; 
 // fix cancel
 //requestparaemter evtl noch in namen
 // hashes weg und dann am ende wieder hin denke
@@ -16,11 +10,6 @@
 // onclick='navigate()'
 
 
-// var cors = require('cors');
-// var fs = require('fs');
-// var extractUrls = require('extract-urls');
-// var Url = require('url');
-// var Path = require('path');
 var superagent = require('superagent').agent();
 var axios = require('axios');
 const regexForUrlParsing = new RegExp(/((href|src)="((.|\n)*?)")/g);

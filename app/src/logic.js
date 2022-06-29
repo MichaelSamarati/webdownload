@@ -2,8 +2,6 @@ import { saveAs } from "file-saver";
 import JSZip from 'jszip'; 
 //import puppeteer from "puppeteer"
 import io from 'socket.io-client';
-//import ss from 'socket.io-stream';
-//import fs from 'fs';
 
 export default async function downloadWebpage(isDownload, incrementFileCount, name, link, iterations, extend, adjustPage) {
     console.log("Process started!")
