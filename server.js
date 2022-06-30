@@ -11,6 +11,8 @@
 //replacesteoin undf oldphrase auslagern nach oben
 // bei catch muss man dann halt gesamte url rein schreiben
 //if adjuust page consitent machen 
+
+// bei onclikc sachen kann man evtl testen wohin kommt,; 
 var superagent = require('superagent').agent();
 var axios = require('axios');
 const regexForUrlParsing = new RegExp(/((href|src|onclick)="((.|\n)*?)")/g);
