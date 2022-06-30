@@ -21,6 +21,30 @@ var io = require('socket.io')(httpServer, {
     }
 });
 
+console.log("here1")
+const login = async() => {
+    console.log("here5")
+    let dashboard = await superagent
+    .post('https://moodle.htl-donaustadt.at/login/index.php')
+    .send({username: '190182', passwords: ''})
+    .set('Content-Type', 'text/html; charset=utf-8').end((err, res) => {
+        // Calling the end function will send the request
+      })
+    
+    .catch(console.error)
+    //console.log(dashboard)
+
+    let my = await superagent
+    .get('https://moodle.htl-donaustadt.at/my/').end((err, res) => {
+        // Calling the end function will send the request
+      })
+    .catch(console.error)
+    //console.log(my)
+    console.log("here8")
+}
+ login();
+console.log("here2")
+
 io.listen((process.env.PORT || 5000));
 
 io.on("connection", socket => {
@@ -36,6 +60,9 @@ io.on("connection", socket => {
     socket.on("webdownload", async ({ link, iterations, extend, adjustPage }) => {
         console.log("webdownload intitiated...")
         try {
+
+            
+
             //CurrentIteration keeps track of the current level
             var currentIteration = 1;
 
