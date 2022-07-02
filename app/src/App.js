@@ -150,7 +150,7 @@ function App() {
               <Col sm={12} md={6} lg={6}>
                 <Form.Group controlId="iterations" className="mb-2">
                   <Form.Label>Iterations</Form.Label>
-                  <Form.Control size="sm" onChange={updateIterations} defaultValue="3" min="1" type="number"></Form.Control>
+                  <Form.Control size="sm" onChange={updateIterations} defaultValue="2" min="1" type="number"></Form.Control>
                 </Form.Group>
               </Col>
             </Row>
