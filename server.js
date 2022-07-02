@@ -11,9 +11,13 @@
 //replacesteoin undf oldphrase auslagern nach oben
 // bei catch muss man dann halt gesamte url rein schreiben
 //if adjuust page consitent machen 
-
+//label keliner schrift denke
 // bei onclikc sachen kann man evtl testen wohin kommt,; 
-var superagent = require('superagent').agent();
+//cass filesauch parsen denke;; 
+
+
+
+//var superagent = require('superagent').agent();
 var axios = require('axios');
 const regexForUrlParsing = new RegExp(/((href|src|onclick)="((.|\n)*?)")/g);
 var httpServer = require("http").createServer();
@@ -23,29 +27,6 @@ var io = require('socket.io')(httpServer, {
     }
 });
 
-console.log("here1")
-const login = async() => {
-    console.log("here5")
-    let dashboard = await superagent
-    .post('https://moodle.htl-donaustadt.at/login/index.php')
-    .send({username: '190182', passwords: ''})
-    .set('Content-Type', 'text/html; charset=utf-8').end((err, res) => {
-        // Calling the end function will send the request
-      })
-    
-    .catch(console.error)
-    //console.log(dashboard)
-
-    let my = await superagent
-    .get('https://moodle.htl-donaustadt.at/my/').end((err, res) => {
-        // Calling the end function will send the request
-      })
-    .catch(console.error)
-    //console.log(my)
-    console.log("here8")
-}
- login();
-console.log("here2")
 
 io.listen((process.env.PORT || 5000));
 
@@ -149,10 +130,6 @@ io.on("connection", socket => {
                                 //Remove url http/https
                                 const nowUrlWithoutHttp = removeHttp(fullUrl);
 
-                                
-                                
-                                //
-                                
                                 const nowFileName = extractFileName(nowUrlWithoutHttp);
                                 const nowFolderName = extractFolderName(nowUrlWithoutHttp);
                                 const nowExtension = extractExtension(nowUrlWithoutHttp);

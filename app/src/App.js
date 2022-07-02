@@ -141,13 +141,13 @@ function App() {
               </Col>
             </Row>
             <Row>
-              <Col sm={12} md={9} lg={9}>
+              <Col sm={12} md={6} lg={6}>
                 <Form.Group controlId="name" className="mb-2">
                   <Form.Label>Filename</Form.Label>
                   <Form.Control size="sm" onChange={updateName} placeholder="Example" type="text"></Form.Control>
                 </Form.Group>
               </Col>
-              <Col sm={12} md={3} lg={3}>
+              <Col sm={12} md={6} lg={6}>
                 <Form.Group controlId="iterations" className="mb-2">
                   <Form.Label>Iterations</Form.Label>
                   <Form.Control size="sm" onChange={updateIterations} defaultValue="3" min="1" type="number"></Form.Control>

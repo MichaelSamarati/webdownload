@@ -4,7 +4,7 @@
 WebDownload is an nodejs app to download a website for offline usage. 
 
 ### Disclaimer! 
-The application does only provide a static version of a website. It is not able to execute the code from the original website.
+The application does only provide a static version of a website. It is not able to execute server code.
 
 ## Example
 
