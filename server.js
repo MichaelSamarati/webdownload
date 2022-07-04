@@ -23,7 +23,7 @@ const regexForUrlParsing = new RegExp(/((href|src|onclick)="((.|\n)*?)")/g);
 var httpServer = require("http").createServer();
 var io = require('socket.io')(httpServer, {
     cors: {
-        origin: ["https://web-down-load.herokuapp.com", "http://localhost:55000"]
+        origin: ["https://web-down-load.herokuapp.com", "http://localhost:3000"]
     }
 });
 
