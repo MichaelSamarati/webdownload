@@ -14,7 +14,7 @@
 //label keliner schrift denke
 // bei onclikc sachen kann man evtl testen wohin kommt,; 
 //cass filesauch parsen denke;; 
-
+//wieder usestae bei cancel; denke; 
 
 
 //var superagent = require('superagent').agent();
@@ -29,7 +29,7 @@ var io = require('socket.io')(httpServer, {
 
 
 io.listen((process.env.PORT || 5000));
-
+console.log(io.PORT)
 io.on("connection", socket => {
     //Save start time
     var start = Date.now();

@@ -8,7 +8,7 @@ export default async function downloadWebpage(isDownload, incrementFileCount, na
         //Save start time
         const start = Date.now();
 
-        const socket = io("http://localhost:5000");
+        const socket = io("http://localhost:"+(process.env.PORT || 5000));
         var currentIteration;
         socket.on('connect', () => {
             //console.log("Connected with server!");
