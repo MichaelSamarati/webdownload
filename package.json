@@ -14,7 +14,8 @@
     "start": "node server.js",
     "server": "nodemon server.js",
     "app": "npm start --prefix app",
-    "dev": "concurrently \"npm run server\" \"npm run app\""
+    "dev": "concurrently \"npm run server\" \"npm run app\"",
+    "deploy": "git push heroku master"
   },
   "dependencies": {
     "autoprefixer": "10.4.5",
