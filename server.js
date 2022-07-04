@@ -23,13 +23,13 @@ const regexForUrlParsing = new RegExp(/((href|src|onclick)="((.|\n)*?)")/g);
 var httpServer = require("http").createServer();
 var io = require('socket.io')(httpServer, {
     cors: {
-        origin: ["https://web-down-load.herokuapp.com", "http://localhost:3000"]
+        origin: ["https://web-down-load.herokuapp.com", "http://localhost:55000"]
     }
 });
 
 
-io.listen((process.env.PORT || 5000));
-console.log((process.env.PORT || 5000))
+io.listen((process.env.PORT || 55000));
+
 io.on("connection", socket => {
     //Save start time
     var start = Date.now();
